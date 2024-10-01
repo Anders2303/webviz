@@ -4,19 +4,22 @@ import { Menu } from "@lib/components/Menu";
 import { MenuItem } from "@lib/components/MenuItem";
 import { SelectOption } from "@lib/components/Select";
 import { Button, Dropdown, MenuButton } from "@mui/base";
-import { Add, ArrowDropDown } from "@mui/icons-material";
+import {
+    Add,
+    /* ArrowDropDown */
+} from "@mui/icons-material";
 
-export type AddItemButtonProps = {
+export type AddItemButtonProps<T extends SelectOption> = {
     buttonText: string;
-    options?: SelectOption[];
+    options?: T[];
     onAddClicked?: () => void;
-    onOptionClicked?: (value: SelectOption["value"]) => void;
+    onOptionClicked?: (value: T["value"]) => void;
 };
 
 /**
  * Generic add-button, for the top of  sortable-lists. Uses a dropdown if there's more than 1 available options
  */
-export function AddItemButton(props: AddItemButtonProps): React.ReactNode {
+export function AddItemButton<T extends SelectOption>(props: AddItemButtonProps<T>): React.ReactNode {
     const { onOptionClicked, onAddClicked } = props;
 
     const handleOptionClicked = React.useCallback(
@@ -40,10 +43,10 @@ export function AddItemButton(props: AddItemButtonProps): React.ReactNode {
                 <ButtonContent text={props.buttonText} multiple />
             </MenuButton>
 
-            <Menu className="text-sm p-1 max-h-96 overflow-auto" anchorOrigin="bottom-end">
+            <Menu className="text-sm p-1 max-h-96 overflow-auto" anchorOrigin="bottom">
                 {props.options.map((entry) => (
                     <MenuItem key={entry.value} className="text-sm p-0.5" onClick={() => handleOptionClicked(entry)}>
-                        {entry.label}
+                        {entry.adornment} {entry.label}
                     </MenuItem>
                 ))}
             </Menu>
@@ -53,10 +56,9 @@ export function AddItemButton(props: AddItemButtonProps): React.ReactNode {
 
 function ButtonContent(props: { text: string; multiple?: boolean }) {
     return (
-        <div className="flex items-center gap-1 py-0.5 px-1 text-sm rounded hover:bg-blue-100">
+        <div className="flex items-center gap-1 py-0.5 pl-1 pr-2 text-sm rounded hover:bg-blue-100">
             <Add fontSize="inherit" />
             <span>{props.text}</span>
-            {props.multiple && <ArrowDropDown />}
         </div>
     );
 }

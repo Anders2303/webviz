@@ -64,4 +64,9 @@ class WellboreLogCurveData(BaseModel):
     no_data_value: float | None
     unit: str
     curve_unit_desc: str | None
-    DataPoints: list[list[float | None]]
+    # [float, ...(float | str | None)] would be more correct
+    # ! Our version of open-api does not generate tuples as expected. Instead of:
+    # !     [number, ...(number | string | None)]
+    # ! we get:
+    # !     (number | string | null)[]
+    DataPoints: list[tuple[float, float | str | None]]

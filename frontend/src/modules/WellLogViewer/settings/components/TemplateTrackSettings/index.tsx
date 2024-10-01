@@ -4,8 +4,10 @@ import { SettingsStatusWriter } from "@framework/StatusWriter";
 import { arrayMove } from "@framework/utils/arrays";
 import { Menu } from "@lib/components/Menu";
 import { MenuItem } from "@lib/components/MenuItem";
+import { SelectOption } from "@lib/components/Select";
 // import { MenuItem } from "@lib/components/MenuItem";
 import { SortableList } from "@lib/components/SortableList";
+import { Modify } from "@lib/utils/typing";
 import { transformToTrackConfigs } from "@modules/WellLogViewer/utils/logViewerTemplate";
 import { Dropdown, MenuButton } from "@mui/base";
 import { FileDownload, FileUpload, MoreVert } from "@mui/icons-material";
@@ -17,18 +19,33 @@ import { SortableTrackItem } from "./SortableTrackItem";
 
 import { TemplateTrackConfig, logViewerTrackConfigs } from "../../atoms/persistedAtoms";
 import { AddItemButton } from "../AddItemButton";
+import { TrackIcon } from "../_shared/icons";
 
 interface TemplateTrackSettingsProps {
     statusWriter: SettingsStatusWriter;
 }
+
+type TrackSelectOption = Modify<SelectOption, { value: TemplateTrackConfig["_type"] }>;
+const TRACK_OPTIONS: TrackSelectOption[] = [
+    {
+        label: "Continous",
+        value: "continous",
+        adornment: <TrackIcon type="continous" />,
+    },
+    {
+        label: "Discrete",
+        value: "discrete",
+        adornment: <TrackIcon type="discrete" />,
+    },
+];
 
 export function TemplateTrackSettings(props: TemplateTrackSettingsProps): React.ReactNode {
     const [trackConfigs, setTrackConfigs] = useAtom(logViewerTrackConfigs);
     const jsonImportInputRef = React.useRef<HTMLInputElement | null>(null);
 
     const handleNewPlotTrack = React.useCallback(
-        function handleNewPlotTrack() {
-            const newConfig = createNewConfig(`Plot track #${trackConfigs.length + 1}`);
+        function handleNewPlotTrack(type: TrackSelectOption["value"]) {
+            const newConfig = createNewConfig(`Plot track #${trackConfigs.length + 1}`, type);
 
             setTrackConfigs([...trackConfigs, newConfig]);
         },
@@ -115,7 +132,7 @@ export function TemplateTrackSettings(props: TemplateTrackSettingsProps): React.
 
                 <div className="flex-grow font-bold text-sm">Plot Tracks</div>
 
-                <AddItemButton buttonText="Add track" onAddClicked={handleNewPlotTrack} />
+                <AddItemButton buttonText="Add track" options={TRACK_OPTIONS} onOptionClicked={handleNewPlotTrack} />
                 <Dropdown>
                     <MenuButton className="py-0.5 px-1 text-sm rounded hover:bg-blue-100">
                         <MoreVert fontSize="inherit" />
@@ -170,9 +187,10 @@ export function TemplateTrackSettings(props: TemplateTrackSettingsProps): React.
     );
 }
 
-function createNewConfig(title: string): TemplateTrackConfig {
+function createNewConfig(title: string, type: TemplateTrackConfig["_type"]): TemplateTrackConfig {
     return {
         _id: v4(),
+        _type: type,
         plots: [],
         scale: "linear",
         width: 3,

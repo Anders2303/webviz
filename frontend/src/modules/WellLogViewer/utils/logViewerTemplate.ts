@@ -2,6 +2,7 @@
  * Utilities and constants used for generating well-log-viewer template configs
  */
 import { DropdownOption } from "@lib/components/Dropdown";
+import { OptionalExceptFor } from "@lib/utils/typing";
 import {
     Template,
     TemplatePlotScaleTypes,
@@ -23,7 +24,7 @@ export const DEFAULT_MAX_VISIBLE_TRACKS = 5;
 
 export const PLOT_SCALE_OPTIONS: TemplatePlotScaleOption[] = [
     { label: "Linear", value: "linear" },
-    { label: "Logaritmic", value: "log" },
+    { label: "Logarithmic", value: "log" },
 ];
 
 export const PLOT_TYPES = ["line", "linestep", "dot", "area", "gradientfill", "differential", "stacked"];
@@ -40,8 +41,12 @@ export const PLOT_TYPE_OPTIONS: PlotDropdownOption[] = [
     // { value: "stacked", label: "Stacked" },
 ];
 
-export function isCompositePlotType(type: TemplatePlotTypes) {
-    return ["differential"].includes(type);
+export function plotIsDiscrete(plotConfig: TemplatePlotConfig): boolean {
+    const { type, _source } = plotConfig;
+
+    // TODO: Can we assume that some specific well-log curves are discrete based on name? For instance, STAT_WI has log named ZONE, which gives string values.
+
+    return _source === "geology" || _source === "stratigraphy" || type === "stacked";
 }
 
 export function createLogTemplate(templateTrackConfigs: TemplateTrack[]): Template {
@@ -53,7 +58,9 @@ export function createLogTemplate(templateTrackConfigs: TemplateTrack[]): Templa
     };
 }
 
-export function makeTrackPlot(plot: Partial<TemplatePlotConfig>): TemplatePlotConfig {
+export function makeTrackPlot(
+    plot: OptionalExceptFor<TemplatePlotConfig, "_source" | "_sourceId">
+): TemplatePlotConfig {
     // If colors get put as undefined, new colors are selected EVERY rerender, so we should avoid that
     const curveColor = plot.color ?? CURVE_COLOR_PALETTE.getColors()[0];
     const curveColor2 = plot.color2 ?? CURVE_COLOR_PALETTE.getColors()[3];
@@ -62,7 +69,6 @@ export function makeTrackPlot(plot: Partial<TemplatePlotConfig>): TemplatePlotCo
         ...plot,
         _id: plot._id ?? v4(),
         _isValid: Boolean(plot.name && plot.type),
-        _logAndName: plot._logAndName ?? `${plot.name}::{undefined}`,
         name: plot.name,
         type: plot.type,
         color: curveColor,
@@ -77,6 +83,11 @@ export function makeTrackPlot(plot: Partial<TemplatePlotConfig>): TemplatePlotCo
 
     switch (plot.type) {
         case "stacked":
+            // return {
+            //     ...config,
+            //     color: undefined,
+            //     color2: undefined,
+            // };
             throw new Error("Stacked graph type currently not supported");
         case "differential":
             return {
@@ -129,6 +140,7 @@ function transformToTrackConfig(obj: any): TemplateTrackConfig {
     const requiredFields = {
         title: obj.title,
         plots: obj.plots,
+        _type: obj._type,
     };
 
     const optionalFields = {
@@ -144,6 +156,7 @@ function transformToTrackConfig(obj: any): TemplateTrackConfig {
     return {
         ...optionalFields,
         _id: optionalFields._id ?? v4(),
+        _type: requiredFields._type,
         title: requiredFields.title,
         plots: requiredFields.plots.map(makeTrackPlot),
     };

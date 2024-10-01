@@ -8,7 +8,9 @@ from primary.services.smda_access.mocked_drogon_smda_access import (
     StratigraphyAccess as MockedStratigraphyAccess,
 )
 from primary.services.smda_access.well_access import WellAccess as SmdaWellAccess
+from primary.services.smda_access.geology_access import GeologyAccess as SmdaGeologyAccess
 from primary.services.smda_access.stratigraphy_access import StratigraphyAccess
+
 from primary.services.utils.authenticated_user import AuthenticatedUser
 from primary.auth.auth_helper import AuthHelper
 from primary.services.sumo_access.case_inspector import CaseInspector
@@ -240,3 +242,37 @@ async def get_log_curve_data(
     log_curve = await well_access.get_log_curve_data(wellbore_uuid=wellbore_uuid, curve_name=log_curve_name)
 
     return converters.convert_wellbore_log_curve_data_to_schema(log_curve)
+
+
+@router.get("/wellbore_geology_headers")
+async def get_wellbore_geology_headers(
+    authenticated_user: AuthenticatedUser = Depends(AuthHelper.get_authenticated_user),
+    wellbore_uuid: str = Query(description="Wellbore uuid"),
+) -> List[schemas.WellboreGeoHeader]:
+    """Gets headers for geological interproation data for a given wellbore"""
+    # Handle DROGON
+    if wellbore_uuid in ["drogon_horizontal", "drogon_vertical"]:
+        raise NotImplementedError("DROGON log curve data not implemented")
+
+    geol_access = SmdaGeologyAccess(authenticated_user.get_smda_access_token())
+    geo_headers = await geol_access.get_wellbore_geol_headers(wellbore_uuid)
+
+    return [converters.convert_wellbore_geo_header_to_schema(header) for header in geo_headers]
+
+
+@router.get("/wellbore_geology_data")
+async def get_wellbore_geology_data(
+    authenticated_user: AuthenticatedUser = Depends(AuthHelper.get_authenticated_user),
+    wellbore_uuid: str = Query(description="Wellbore uuid"),
+    geology_header_uuid: str = Query(description="Geology header uuid"),
+) -> List[schemas.WellboreGeoData]:
+    """Gets geological data entries for a given geology header"""
+
+    # Handle DROGON
+    if wellbore_uuid in ["drogon_horizontal", "drogon_vertical"]:
+        raise NotImplementedError("DROGON log curve data not implemented")
+
+    geol_access = SmdaGeologyAccess(authenticated_user.get_smda_access_token())
+    geol_data = await geol_access.get_wellbore_geol_data(wellbore_uuid, geology_header_uuid)
+
+    return [converters.convert_wellbore_geo_data_to_schema(entry) for entry in geol_data]

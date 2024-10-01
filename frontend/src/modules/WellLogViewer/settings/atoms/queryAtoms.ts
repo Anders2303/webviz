@@ -64,3 +64,14 @@ export const wellborePicksAndStratigraphyQueryAtom = atomWithQuery<WellPicksLaye
         ...SHARED_QUERY_OPTS,
     };
 });
+
+export const wellboreGeologyHeadersQueryAtom = atomWithQuery((get) => {
+    const wellboreUuid = get(selectedWellboreAtom)?.wellboreUuid ?? "";
+
+    return {
+        queryKey: ["getWellboreGeologyHeaders", wellboreUuid],
+        enabled: Boolean(wellboreUuid),
+        queryFn: () => apiService.well.getWellboreGeologyHeaders(wellboreUuid),
+        ...SHARED_QUERY_OPTS,
+    };
+});

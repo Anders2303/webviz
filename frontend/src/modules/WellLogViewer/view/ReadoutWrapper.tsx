@@ -51,7 +51,7 @@ function infoToReadoutItem(infos: Info[], iTrack: number, templateTracks: Templa
 function curveInfoToReadoutInfo(info: Info): InfoItem {
     return {
         name: info.name ?? "",
-        value: info.value,
+        value: info.discrete ?? info.value,
         unit: info.units ?? "",
         adornment: <div className="w-2 h-2 rounded-full" style={{ background: info.color }} />,
     };

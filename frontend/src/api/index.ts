@@ -107,6 +107,8 @@ export type { VfpProdTable as VfpProdTable_api } from './models/VfpProdTable';
 export { VfpType as VfpType_api } from './models/VfpType';
 export type { WellboreCasing as WellboreCasing_api } from './models/WellboreCasing';
 export type { WellboreCompletion as WellboreCompletion_api } from './models/WellboreCompletion';
+export type { WellboreGeoData as WellboreGeoData_api } from './models/WellboreGeoData';
+export type { WellboreGeoHeader as WellboreGeoHeader_api } from './models/WellboreGeoHeader';
 export type { WellboreHeader as WellboreHeader_api } from './models/WellboreHeader';
 export type { WellboreLogCurveData as WellboreLogCurveData_api } from './models/WellboreLogCurveData';
 export type { WellboreLogCurveHeader as WellboreLogCurveHeader_api } from './models/WellboreLogCurveHeader';
