@@ -9,7 +9,7 @@ import { ColorSet } from "@lib/utils/ColorSet";
 import { CURVE_COLOR_PALETTE } from "@modules/WellLogViewer/utils/logViewerColors";
 import { PLOT_TYPE_OPTIONS, makeTrackPlot } from "@modules/WellLogViewer/utils/logViewerTemplate";
 import { Delete, SwapHoriz, Warning } from "@mui/icons-material";
-import { TemplatePlotTypes } from "@webviz/well-log-viewer/dist/components/WellLogTemplateTypes";
+import { TemplatePlotType } from "@webviz/well-log-viewer/dist/components/WellLogTemplateTypes";
 
 import _ from "lodash";
 
@@ -36,7 +36,7 @@ export function SortablePlotList(props: SortablePlotListProps): React.ReactNode 
                 _source: "welllog",
                 _sourceId: null,
                 color: colorSet.current.getNextColor(),
-                type: plotType as TemplatePlotTypes,
+                type: plotType as TemplatePlotType,
             });
 
             onUpdatePlots([...props.plots, plotConfig]);
@@ -179,7 +179,7 @@ function PlotItemEndAdornment(props: SortablePlotItemProps) {
                 <Dropdown
                     value={props.plot.type}
                     options={PLOT_TYPE_OPTIONS}
-                    onChange={(v) => props.onPlotUpdate(props.plot, { type: v as TemplatePlotTypes })}
+                    onChange={(v) => props.onPlotUpdate(props.plot, { type: v as TemplatePlotType })}
                 />
             </div>
 

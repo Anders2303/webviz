@@ -5,8 +5,8 @@ import { DropdownOption } from "@lib/components/Dropdown";
 import { OptionalExceptFor } from "@lib/utils/typing";
 import {
     Template,
-    TemplatePlotScaleTypes,
-    TemplatePlotTypes,
+    TemplatePlotScale,
+    TemplatePlotType,
     TemplateTrack,
 } from "@webviz/well-log-viewer/dist/components/WellLogTemplateTypes";
 
@@ -17,8 +17,8 @@ import { MAIN_AXIS_CURVE } from "./queryDataTransform";
 
 import { TemplatePlotConfig, TemplateTrackConfig } from "../settings/atoms/persistedAtoms";
 
-type PlotDropdownOption = DropdownOption & { value: TemplatePlotTypes };
-type TemplatePlotScaleOption = DropdownOption & { value: TemplatePlotScaleTypes };
+type PlotDropdownOption = DropdownOption & { value: TemplatePlotType };
+type TemplatePlotScaleOption = DropdownOption & { value: TemplatePlotScale };
 
 export const DEFAULT_MAX_VISIBLE_TRACKS = 5;
 
@@ -78,17 +78,16 @@ export function makeTrackPlot(
         name2: undefined,
         fill: undefined,
         fill2: undefined,
-        colorTable: undefined,
+        colorMapFunctionName: undefined,
     };
 
     switch (plot.type) {
         case "stacked":
-            // return {
-            //     ...config,
-            //     color: undefined,
-            //     color2: undefined,
-            // };
-            throw new Error("Stacked graph type currently not supported");
+            return {
+                ...config,
+                color: undefined,
+                color2: undefined,
+            };
         case "differential":
             return {
                 ...config,
@@ -101,7 +100,7 @@ export function makeTrackPlot(
         case "gradientfill":
             return {
                 ...config,
-                colorTable: "Continuous",
+                colorMapFunctionName: "Continuous",
             };
 
         case "line":
@@ -125,7 +124,7 @@ export function isValidPlot(config: Partial<TemplatePlotConfig>): boolean {
         case "differential":
             return Boolean(config.name2 && config.color2 && config.fill && config.fill2);
         case "gradientfill":
-            return Boolean(config.colorTable);
+            return Boolean(config.colorMapFunctionName);
         default:
             return true;
     }

@@ -4,7 +4,7 @@ import { Dropdown } from "@lib/components/Dropdown";
 import { PendingWrapper } from "@lib/components/PendingWrapper";
 import { PLOT_SCALE_OPTIONS } from "@modules/WellLogViewer/utils/logViewerTemplate";
 import { usePropagateApiErrorToStatusWriter } from "@modules/_shared/hooks/usePropagateApiErrorToStatusWriter";
-import { TemplatePlotScaleTypes } from "@webviz/well-log-viewer/dist/components/WellLogTemplateTypes";
+import { TemplatePlotScale } from "@webviz/well-log-viewer/dist/components/WellLogTemplateTypes";
 
 import { useAtomValue } from "jotai";
 
@@ -29,7 +29,7 @@ export function ContinousTrackSettings(props: TrackSettingFragmentProps): React.
                 filter={false}
                 onChange={(val) => {
                     if (!val) props.onFieldChange({ scale: undefined });
-                    else props.onFieldChange({ scale: val as TemplatePlotScaleTypes });
+                    else props.onFieldChange({ scale: val as TemplatePlotScale });
                 }}
             />
 
