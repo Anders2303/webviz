@@ -1,9 +1,7 @@
-import { transformFormationData } from "@equinor/esv-intersection";
 import { apiService } from "@framework/ApiService";
-import { WellPicksLayerData } from "@modules/Intersection/utils/layers/WellpicksLayer";
+import { getWellborePicksAndStratigraphicUnits } from "@modules/WellLogViewer/utils/query/sharedQueries";
 
 import { atomWithQuery } from "jotai-tanstack-query";
-import _ from "lodash";
 
 import { selectedEnsembleSetAtom, selectedFieldIdentifierAtom, selectedWellboreAtom } from "./derivedAtoms";
 
@@ -41,28 +39,12 @@ export const wellLogCurveHeadersQueryAtom = atomWithQuery((get) => {
     };
 });
 
-export const wellborePicksAndStratigraphyQueryAtom = atomWithQuery<WellPicksLayerData>((get) => {
+export const wellborePicksAndStratUnitsQueryAtom = atomWithQuery((get) => {
     const selectedEnsemble = get(selectedEnsembleSetAtom);
-
     const wellboreId = get(selectedWellboreAtom)?.wellboreUuid ?? "";
     const caseId = selectedEnsemble?.getIdent()?.getCaseUuid() ?? "";
 
-    return {
-        queryKey: ["getWellborePicksAndStratigraphicUnits", wellboreId, caseId],
-        enabled: Boolean(caseId && wellboreId),
-        queryFn: async () => {
-            const data = await apiService.well.getWellborePicksAndStratigraphicUnits(caseId, wellboreId);
-
-            const transformedData = transformFormationData(data.wellbore_picks, data.stratigraphic_units as any);
-
-            // ! Sometimes the transformation data returns duplicate entries, filtering them out
-            return {
-                nonUnitPicks: _.uniqBy(transformedData.nonUnitPicks, "identifier"),
-                unitPicks: _.uniqBy(transformedData.unitPicks, "name"),
-            };
-        },
-        ...SHARED_QUERY_OPTS,
-    };
+    return getWellborePicksAndStratigraphicUnits(wellboreId, caseId);
 });
 
 export const wellboreGeologyHeadersQueryAtom = atomWithQuery((get) => {

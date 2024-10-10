@@ -8,13 +8,19 @@ import {
     usePropagateApiErrorToStatusWriter,
 } from "@modules/_shared/hooks/usePropagateApiErrorToStatusWriter";
 import { CircularProgress } from "@mui/material";
+import { UseQueryResult } from "@tanstack/react-query";
 
 import { useAtomValue } from "jotai";
 
 import { SubsurfaceLogViewerWrapper } from "./SubsurfaceLogViewerWrapper";
 import { intersectionReferenceSystemAtom } from "./atoms/derivedAtoms";
 import { wellboreTrajectoryQueryAtom } from "./atoms/queryAtoms";
-import { BaseAgnosticSourceData, useGeologyCurveDataQueries, useLogCurveDataQueries } from "./queries/wellLogQueries";
+import {
+    BaseAgnosticSourceData,
+    useGeologyCurveDataQueries,
+    useLogCurveDataQueries,
+    useStratigraphyCurveQueries,
+} from "./queries/wellLogQueries";
 
 import { InterfaceTypes } from "../interfaces";
 
@@ -22,9 +28,11 @@ export function View(props: ModuleViewProps<InterfaceTypes>) {
     const statusWriter = useViewStatusWriter(props.viewContext);
 
     // Passed setting atoms
+    const selectedEnsemble = props.viewContext.useSettingsToViewInterfaceValue("selectedEnsembleSet");
     const selectedWellboreHeader = props.viewContext.useSettingsToViewInterfaceValue("wellboreHeader");
     const requiredLogCurves = props.viewContext.useSettingsToViewInterfaceValue("requiredWellLogCurves");
     const requiredGeologyCurves = props.viewContext.useSettingsToViewInterfaceValue("requiredGeologyCurves");
+    const requiredStratigraphyCurves = props.viewContext.useSettingsToViewInterfaceValue("requiredStratigraphyCurves");
 
     const templateTracks = props.viewContext.useSettingsToViewInterfaceValue("templateTracks");
     const viewerHorizontal = props.viewContext.useSettingsToViewInterfaceValue("viewerHorizontal");
@@ -36,16 +44,15 @@ export function View(props: ModuleViewProps<InterfaceTypes>) {
     const wellboreUuid = selectedWellboreHeader?.wellboreUuid ?? "";
 
     // External Data
-    const curveDataQueries = useLogCurveDataQueries(wellboreUuid, requiredLogCurves);
-    const geologyDataQueries = useGeologyCurveDataQueries(wellboreUuid, requiredGeologyCurves);
-
-    const allCurveDataQueries = [...curveDataQueries, ...geologyDataQueries];
+    const allCurveDataQueries = [
+        useLogCurveDataQueries(wellboreUuid, requiredLogCurves),
+        useGeologyCurveDataQueries(wellboreUuid, requiredGeologyCurves),
+        useStratigraphyCurveQueries(selectedEnsemble, wellboreUuid, requiredStratigraphyCurves),
+    ] as UseQueryResult<BaseAgnosticSourceData[][]>[];
 
     const wellboreTrajectoryDataQuery = useAtomValue(wellboreTrajectoryQueryAtom);
     const intersectionReferenceSystem = useAtomValue(intersectionReferenceSystemAtom);
 
-    // TODO: Have every single query propagete their errors?
-    // forEach: usePropagateApiErrorToStatusWriter(query, statusWriter);
     usePropagateApiErrorToStatusWriter(wellboreTrajectoryDataQuery, statusWriter);
     usePropagateAllApiErrorsToStatusWriter(allCurveDataQueries, statusWriter);
 
@@ -80,7 +87,7 @@ export function View(props: ModuleViewProps<InterfaceTypes>) {
         return <ContentError>Error loading curve data.</ContentError>;
     } else {
         if (!intersectionReferenceSystem) throw new Error("Unexpected null for reference system");
-        const curveData = allCurveDataQueries.map(({ data }) => data as BaseAgnosticSourceData);
+        const curveData = allCurveDataQueries.map(({ data }) => data).flat() as BaseAgnosticSourceData[][];
 
         return (
             <SubsurfaceLogViewerWrapper

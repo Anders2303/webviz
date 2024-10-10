@@ -9,8 +9,9 @@ import { usePropagateApiErrorToStatusWriter } from "@modules/_shared/hooks/usePr
 import { useAtom, useAtomValue } from "jotai";
 
 import { userSelectedNonUnitWellpicksAtom, userSelectedUnitWellpicksAtom } from "../../atoms/baseAtoms";
+import { availableWellPicksAtom } from "../../atoms/derivedAtoms";
 import { padDataWithEmptyRowsAtom, viewerHorizontalAtom } from "../../atoms/persistedAtoms";
-import { wellborePicksAndStratigraphyQueryAtom } from "../../atoms/queryAtoms";
+import { wellborePicksAndStratUnitsQueryAtom } from "../../atoms/queryAtoms";
 import { WellpickSelect } from "../WellpickSelect";
 
 export type ViewerSettingsProps = {
@@ -21,14 +22,28 @@ export function ViewerSettings(props: ViewerSettingsProps): React.ReactNode {
     // Well log selection
     const [horizontal, setHorizontal] = useAtom(viewerHorizontalAtom);
     const [padWithEmptyRows, setPadWithEmptyRows] = useAtom(padDataWithEmptyRowsAtom);
-
-    // Wellpick selection
-    const borePicksAndStratQuery = useAtomValue(wellborePicksAndStratigraphyQueryAtom);
-    const availableWellPicks = borePicksAndStratQuery.data ?? { nonUnitPicks: [], unitPicks: [] };
-    const wellpickErrorMsg = usePropagateApiErrorToStatusWriter(borePicksAndStratQuery, props.statusWriter) ?? "";
-
     const [selectedNonUnitPicks, setSelectedNonUnitPicks] = useAtom(userSelectedNonUnitWellpicksAtom);
     const [selectedUnitPicks, setSelectedUnitPicks] = useAtom(userSelectedUnitWellpicksAtom);
+    const [addingWellpicks, setAddingWellpicks] = React.useState(
+        !!selectedNonUnitPicks.length || !!selectedUnitPicks.length
+    );
+
+    // Wellpick selection
+    const stratUnitsQuery = useAtomValue(wellborePicksAndStratUnitsQueryAtom);
+
+    const availableWellPicks = useAtomValue(availableWellPicksAtom);
+    const wellpickErrorMsg = usePropagateApiErrorToStatusWriter(stratUnitsQuery, props.statusWriter) ?? "";
+
+    const onAddWellpickChange = React.useCallback(
+        function onAddWellpickChange(_evt: unknown, checked: boolean) {
+            setAddingWellpicks(checked);
+            if (!checked) {
+                setSelectedNonUnitPicks([]);
+                setSelectedUnitPicks([]);
+            }
+        },
+        [setSelectedNonUnitPicks, setSelectedUnitPicks]
+    );
 
     return (
         <div className="space-y-2">
@@ -41,17 +56,24 @@ export function ViewerSettings(props: ViewerSettingsProps): React.ReactNode {
                 <Checkbox checked={!padWithEmptyRows} onChange={(e, checked) => setPadWithEmptyRows(!checked)} />
             </Label>
 
-            <Label text="Well picks">
-                <PendingWrapper isPending={borePicksAndStratQuery.isPending} errorMessage={wellpickErrorMsg}>
-                    <WellpickSelect
-                        availableWellpicks={availableWellPicks}
-                        selectedNonUnitPicks={selectedNonUnitPicks}
-                        selectedUnitPicks={selectedUnitPicks}
-                        onNonUnitPicksChange={setSelectedNonUnitPicks}
-                        onUnitPicksChange={setSelectedUnitPicks}
-                    />
-                </PendingWrapper>
+            <Label text="Well picks:" position="left">
+                <>
+                    <Checkbox checked={addingWellpicks} onChange={onAddWellpickChange} />
+                </>
             </Label>
+            {addingWellpicks && (
+                <PendingWrapper isPending={stratUnitsQuery.isPending} errorMessage={wellpickErrorMsg}>
+                    <div className="border-l-4 border-gray-300 pl-2 bg-gray-100 rounded-r">
+                        <WellpickSelect
+                            availableWellpicks={availableWellPicks}
+                            selectedNonUnitPicks={selectedNonUnitPicks}
+                            selectedUnitPicks={selectedUnitPicks}
+                            onNonUnitPicksChange={setSelectedNonUnitPicks}
+                            onUnitPicksChange={setSelectedUnitPicks}
+                        />
+                    </div>
+                </PendingWrapper>
+            )}
         </div>
     );
 }
