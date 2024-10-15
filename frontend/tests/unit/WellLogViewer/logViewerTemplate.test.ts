@@ -17,7 +17,7 @@ describe("makeTrackPlot tests", () => {
 
         expect(result).toMatchObject({
             ...plot,
-            _id: expect.any(String),
+            _key: expect.any(String),
             _isValid: false,
             color: CURVE_COLOR_PALETTE.getColors()[0],
             color2: CURVE_COLOR_PALETTE.getColors()[3],
@@ -34,7 +34,7 @@ describe("makeTrackPlot tests", () => {
 
             expect(result).toMatchObject({
                 ...plot,
-                _id: expect.any(String),
+                _key: expect.any(String),
                 _isValid: true,
                 color: CURVE_COLOR_PALETTE.getColors()[0],
                 color2: CURVE_COLOR_PALETTE.getColors()[3],
@@ -51,7 +51,7 @@ describe("makeTrackPlot tests", () => {
 
         expect(result).toMatchObject({
             ...plot,
-            _id: expect.any(String),
+            _key: expect.any(String),
             _isValid: true,
             color: CURVE_COLOR_PALETTE.getColors()[0],
             color2: CURVE_COLOR_PALETTE.getColors()[3],
@@ -78,7 +78,7 @@ describe("makeTrackPlot tests", () => {
         const result = makeTrackPlot(plot);
 
         expect(result).toMatchObject({
-            _id: expect.any(String),
+            _key: expect.any(String),
             _isValid: true,
             colorTable: "Continuous",
         });
@@ -89,26 +89,26 @@ describe("makeTrackPlot tests", () => {
         const result = makeTrackPlot(plot);
 
         expect(result).toMatchObject({
-            _id: expect.any(String),
+            _key: expect.any(String),
             _isValid: true,
             color: "#123456",
             color2: "#654321",
         });
     });
 
-    test("should generate a new _id if not provided", () => {
+    test("should generate a new _key if not provided", () => {
         const plot = { type: "line" } as TemplatePlotConfig;
         const result = makeTrackPlot(plot);
 
-        expect(result._id).toBeDefined();
-        expect(result._id).toHaveLength(36); // UUID length
+        expect(result._key).toBeDefined();
+        expect(result._key).toHaveLength(36); // UUID length
     });
 
-    test("should retain the provided _id if available", () => {
-        const plot = { name: "SomeCurve", type: "line", _id: "existing-id" } as TemplatePlotConfig;
+    test("should retain the provided _key if available", () => {
+        const plot = { name: "SomeCurve", type: "line", _key: "existing-id" } as TemplatePlotConfig;
         const result = makeTrackPlot(plot);
 
-        expect(result._id).toBe("existing-id");
+        expect(result._key).toBe("existing-id");
     });
 
     test("should discard other curve specific values when creating a plot", () => {
@@ -247,14 +247,14 @@ describe("transformToTrackConfigs tests", () => {
                 title: input[index].title,
                 plots: input[index].plots.map((plot) => ({
                     ...plot,
-                    _id: expect.any(String),
+                    _key: expect.any(String),
                     _isValid: true,
                 })),
             });
         });
     });
 
-    test("should generate a new _id if not provided", () => {
+    test("should generate a new _key if not provided", () => {
         const input = [
             {
                 title: "Track 1",
@@ -264,22 +264,22 @@ describe("transformToTrackConfigs tests", () => {
 
         const result = transformToTrackConfigs(input);
 
-        expect(result[0]._id).toBeDefined();
-        expect(result[0]._id).toHaveLength(36); // UUID length
+        expect(result[0]._key).toBeDefined();
+        expect(result[0]._key).toHaveLength(36); // UUID length
     });
 
-    test("should retain the provided _id if available", () => {
+    test("should retain the provided _key if available", () => {
         const input = [
             {
                 title: "Track 1",
-                _id: "existing-id",
+                _key: "existing-id",
                 plots: [{ name: "Curve 1", type: "line", color: "#123456" }],
             },
         ];
 
         const result = transformToTrackConfigs(input);
 
-        expect(result[0]._id).toBe("existing-id");
+        expect(result[0]._key).toBe("existing-id");
     });
 
     test("should throw an error if required track fields are missing", () => {

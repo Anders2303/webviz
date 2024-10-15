@@ -66,7 +66,7 @@ export function makeTrackPlot(plot: OptionalExceptFor<TemplatePlotConfig, "_curv
     // DIFF_CURVE_COLORS
     const config: TemplatePlotConfig = {
         ...plot,
-        _id: plot._id ?? v4(),
+        _key: plot._key ?? v4(),
         _isValid: Boolean(plot.name && plot.type),
         name: plot.name,
         type: plot.type,
@@ -136,7 +136,7 @@ function transformToTrackConfig(obj: any): TemplateTrackConfig {
     };
 
     const optionalFields = {
-        _id: obj._id,
+        _key: obj._key,
         required: obj.required,
         width: obj.width,
         scale: obj.scale,
@@ -147,7 +147,7 @@ function transformToTrackConfig(obj: any): TemplateTrackConfig {
 
     return {
         ...optionalFields,
-        _id: optionalFields._id ?? v4(),
+        _key: optionalFields._key ?? v4(),
         _type: requiredFields._type,
         title: requiredFields.title,
         plots: requiredFields.plots.map(makeTrackPlot),

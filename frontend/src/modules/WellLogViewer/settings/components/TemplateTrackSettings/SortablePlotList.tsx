@@ -46,7 +46,7 @@ export function SortablePlotList(props: SortablePlotListProps): React.ReactNode 
     const handlePlotChange = React.useCallback(
         function handlePlotChange(plot: TemplatePlotConfig, changes: Partial<TemplatePlotConfig>) {
             const newPlot = makeTrackPlot({ ...plot, ...changes });
-            const newPlots = props.plots.map((p) => (p._id === newPlot._id ? newPlot : p));
+            const newPlots = props.plots.map((p) => (p._key === newPlot._key ? newPlot : p));
 
             onUpdatePlots(newPlots);
         },
@@ -55,7 +55,7 @@ export function SortablePlotList(props: SortablePlotListProps): React.ReactNode 
 
     const removePlot = React.useCallback(
         function removePlot(plot: TemplatePlotConfig) {
-            onUpdatePlots(props.plots.filter((p) => p._id !== plot._id));
+            onUpdatePlots(props.plots.filter((p) => p._key !== plot._key));
         },
         [onUpdatePlots, props.plots]
     );
@@ -95,7 +95,7 @@ export function SortablePlotList(props: SortablePlotListProps): React.ReactNode 
             <SortableList onItemMoved={handleTrackMove}>
                 {props.plots.map((plot) => (
                     <SortablePlotItem
-                        key={plot._id}
+                        key={plot._key}
                         plot={plot}
                         curveHeaderOptions={curveHeaderOptions}
                         onPlotUpdate={handlePlotChange}
@@ -128,7 +128,7 @@ function SortablePlotItem(props: SortablePlotItemProps) {
             const selectedHeader = selectedOption._curveHeader;
 
             onPlotUpdate(props.plot, {
-                _id: props.plot._id,
+                _key: props.plot._key,
                 _curveHeader: selectedHeader,
                 name: selectedHeader.curveName,
             });
@@ -168,7 +168,7 @@ function SortablePlotItem(props: SortablePlotItemProps) {
         </div>
     );
 
-    return <SortableListItem id={props.plot._id} title={plotForm} endAdornment={endAdornment} />;
+    return <SortableListItem id={props.plot._key} title={plotForm} endAdornment={endAdornment} />;
 }
 
 function PlotItemEndAdornment(props: SortablePlotItemProps) {

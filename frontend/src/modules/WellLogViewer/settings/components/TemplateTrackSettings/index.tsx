@@ -20,6 +20,7 @@ import { SortableTrackItem } from "./SortableTrackItem";
 import { TemplateTrackConfig, logViewerTrackConfigs } from "../../atoms/persistedAtoms";
 import { AddItemButton } from "../AddItemButton";
 import { TrackIcon } from "../_shared/icons";
+import { WellLogCurveTypeEnum_api } from "@api";
 
 interface TemplateTrackSettingsProps {
     statusWriter: SettingsStatusWriter;
@@ -29,13 +30,13 @@ type TrackSelectOption = Modify<SelectOption, { value: TemplateTrackConfig["_typ
 const TRACK_OPTIONS: TrackSelectOption[] = [
     {
         label: "Continous",
-        value: "continous",
-        adornment: <TrackIcon type="continous" />,
+        value: WellLogCurveTypeEnum_api.CONTINUOUS,
+        adornment: <TrackIcon type={WellLogCurveTypeEnum_api.CONTINUOUS} />,
     },
     {
         label: "Discrete",
-        value: "discrete",
-        adornment: <TrackIcon type="discrete" />,
+        value: WellLogCurveTypeEnum_api.DISCRETE,
+        adornment: <TrackIcon type={WellLogCurveTypeEnum_api.DISCRETE} />,
     },
 ];
 
@@ -54,14 +55,14 @@ export function TemplateTrackSettings(props: TemplateTrackSettingsProps): React.
 
     const handleDeleteTrack = React.useCallback(
         function handleDeleteTrack(track: TemplateTrackConfig) {
-            setTrackConfigs(trackConfigs.filter((configs) => configs._id !== track._id));
+            setTrackConfigs(trackConfigs.filter((configs) => configs._key !== track._key));
         },
         [setTrackConfigs, trackConfigs]
     );
 
     const handleEditTrack = React.useCallback(
         function handleEditTrack(updatedItem: TemplateTrackConfig) {
-            const newConfigs = trackConfigs.map((tc) => (tc._id === updatedItem._id ? updatedItem : tc));
+            const newConfigs = trackConfigs.map((tc) => (tc._key === updatedItem._key ? updatedItem : tc));
 
             setTrackConfigs(newConfigs);
         },
@@ -77,7 +78,7 @@ export function TemplateTrackSettings(props: TemplateTrackSettingsProps): React.
         ) {
             // Skip update if the item was moved above or below itself, as this means no actual move happened
             // TODO: This should probably be checked inside SortableList
-            const currentPosition = trackConfigs.findIndex((cfg) => cfg._id === movedItemId);
+            const currentPosition = trackConfigs.findIndex((cfg) => cfg._key === movedItemId);
             if (currentPosition === newPosition || currentPosition + 1 === newPosition) return;
 
             const newTrackCfg = arrayMove(trackConfigs, currentPosition, newPosition);
@@ -174,7 +175,7 @@ export function TemplateTrackSettings(props: TemplateTrackSettingsProps): React.
             <SortableList onItemMoved={handleTrackMove}>
                 {trackConfigs.map((config) => (
                     <SortableTrackItem
-                        key={config._id}
+                        key={config._key}
                         trackConfig={config}
                         statusWriter={props.statusWriter}
                         // Listeners
@@ -189,7 +190,7 @@ export function TemplateTrackSettings(props: TemplateTrackSettingsProps): React.
 
 function createNewConfig(title: string, type: TemplateTrackConfig["_type"]): TemplateTrackConfig {
     return {
-        _id: v4(),
+        _key: v4(),
         _type: type,
         plots: [],
         scale: "linear",
