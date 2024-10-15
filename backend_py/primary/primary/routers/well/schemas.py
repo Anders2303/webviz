@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel
 
@@ -100,7 +101,23 @@ class WellborePerforation(BaseModel):
     completionMode: str
 
 
+class WellLogCurveSourceEnum(str, Enum):
+    SSDL_WELL_LOG = "ssdl::well_log"
+    SMDA_GEOLOGY = "smda::geology"
+    SMDA_STRATIGRAPHY = "smda::stratigraphy"
+
+
+class WellLogCurveTypeEnum(str, Enum):
+    CONTINUOUS = "continuous"
+    DISCRETE = "discrete"
+    FLAG = "flag"
+
+
 class WellboreLogCurveHeader(BaseModel):
+    source: WellLogCurveSourceEnum
+    sourceId: str
+    curveType: WellLogCurveTypeEnum
+
     logName: str
     curveName: str
     curveUnit: str | None
