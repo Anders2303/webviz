@@ -33,8 +33,7 @@ export function SortablePlotList(props: SortablePlotListProps): React.ReactNode 
     const addPlot = React.useCallback(
         function addPlot(plotType: string) {
             const plotConfig: TemplatePlotConfig = makeTrackPlot({
-                _source: "welllog",
-                _sourceId: null,
+                _curveHeader: null,
                 color: colorSet.current.getNextColor(),
                 type: plotType as TemplatePlotType,
             });
@@ -82,9 +81,9 @@ export function SortablePlotList(props: SortablePlotListProps): React.ReactNode 
 
     // If the current selection does not exist, keep it in the selection, with a warning. This can happen when the user is importing a config, or swapping between wellbores
     props.plots.forEach((plot) => {
-        if (!plot._sourceId) return;
-        if (curveHeaderOptions.some(({ value }) => plot._sourceId === value)) return;
-        curveHeaderOptions.push(makeMissingCurveOption(plot._sourceId));
+        if (!plot._curveHeader) return;
+        if (curveHeaderOptions.some(({ value }) => plot._curveHeader?.sourceId === value)) return;
+        curveHeaderOptions.push(makeMissingCurveOption(plot._curveHeader));
     });
 
     return (
@@ -130,7 +129,7 @@ function SortablePlotItem(props: SortablePlotItemProps) {
 
             onPlotUpdate(props.plot, {
                 _id: props.plot._id,
-                _sourceId: makeSelectValue(selectedHeader),
+                _curveHeader: selectedHeader,
                 name: selectedHeader.curveName,
             });
         },
@@ -141,7 +140,7 @@ function SortablePlotItem(props: SortablePlotItemProps) {
         <div className="flex-grow flex">
             <Dropdown
                 placeholder="Select a curve"
-                value={props.plot._sourceId ?? ""}
+                value={props.plot._curveHeader?.sourceId ?? ""}
                 options={props.curveHeaderOptions}
                 onChange={handlePlotSelectChange}
             />
@@ -209,7 +208,7 @@ function makeCurveNameOptions(curveHeaders: WellboreLogCurveHeader_api[]): Curve
         .sortBy([sortStatLogsToTop, "logName", "curveName"])
         .map((curveHeader): CurveDropdownOption => {
             return {
-                value: makeSelectValue(curveHeader),
+                value: curveHeader.sourceId,
                 label: curveHeader.curveName,
                 group: curveHeader.logName,
                 _curveHeader: curveHeader,
@@ -218,18 +217,12 @@ function makeCurveNameOptions(curveHeaders: WellboreLogCurveHeader_api[]): Curve
         .value();
 }
 
-function makeSelectValue(curveHeader: WellboreLogCurveHeader_api) {
-    // ! In some VERY rare cases, the curve-name is repeated across the headers. Merging the curve and log names to make unique keys
-    // ... surely they wont have log-names with :: in them, RIGHT?
-    return `${curveHeader.logName}::${curveHeader.curveName}`;
-}
-
 // Helper method to show a missing curve as a disabled option
-function makeMissingCurveOption(curveAndLogName: string): CurveDropdownOption {
+function makeMissingCurveOption(curveHeader: WellboreLogCurveHeader_api): CurveDropdownOption {
     // @ts-expect-error We don't care about the _header field here, since the choice is always disabled
     return {
-        label: curveAndLogName.split("::")[1],
-        value: curveAndLogName,
+        label: curveHeader.curveName,
+        value: curveHeader.sourceId,
         group: "Unavailable curves!",
         disabled: true,
         adornment: (

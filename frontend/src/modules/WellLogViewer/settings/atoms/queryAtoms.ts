@@ -1,3 +1,4 @@
+import { WellLogCurveSourceEnum_api } from "@api";
 import { apiService } from "@framework/ApiService";
 import { getWellborePicksAndStratigraphicUnits } from "@modules/WellLogViewer/utils/query/sharedQueries";
 
@@ -30,10 +31,15 @@ export const drilledWellboreHeadersQueryAtom = atomWithQuery((get) => {
 */
 export const wellLogCurveHeadersQueryAtom = atomWithQuery((get) => {
     const wellboreId = get(selectedWellboreAtom)?.wellboreUuid;
+    const sources = [
+        WellLogCurveSourceEnum_api.SSDL_WELL_LOG,
+        WellLogCurveSourceEnum_api.SMDA_GEOLOGY,
+        WellLogCurveSourceEnum_api.SMDA_STRATIGRAPHY,
+    ];
 
     return {
         queryKey: ["getWellboreLogCurveHeaders", wellboreId],
-        queryFn: () => apiService.well.getWellboreLogCurveHeaders(wellboreId ?? ""),
+        queryFn: () => apiService.well.getWellboreLogCurveHeaders(wellboreId ?? "", sources),
         enabled: Boolean(wellboreId),
         ...SHARED_QUERY_OPTS,
     };
@@ -45,15 +51,4 @@ export const wellborePicksAndStratUnitsQueryAtom = atomWithQuery((get) => {
     const caseId = selectedEnsemble?.getIdent()?.getCaseUuid() ?? "";
 
     return getWellborePicksAndStratigraphicUnits(wellboreId, caseId);
-});
-
-export const wellboreGeologyHeadersQueryAtom = atomWithQuery((get) => {
-    const wellboreUuid = get(selectedWellboreAtom)?.wellboreUuid ?? "";
-
-    return {
-        queryKey: ["getWellboreGeologyHeaders", wellboreUuid],
-        enabled: Boolean(wellboreUuid),
-        queryFn: () => apiService.well.getWellboreGeologyHeaders(wellboreUuid),
-        ...SHARED_QUERY_OPTS,
-    };
 });

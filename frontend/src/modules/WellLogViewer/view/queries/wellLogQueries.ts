@@ -39,15 +39,17 @@ export function useStratigraphyCurveQueries(
     return useQueries({
         combine: mergeResults,
         queries: plotConfigs.map(
-            ({ _sourceId, name }): UseQueryOptions => ({
-                queryKey: ["getStratigraphyCurveData", _sourceId],
+            ({ _curveHeader, name }): UseQueryOptions => ({
+                queryKey: ["getStratigraphyCurveData", _curveHeader],
                 enabled: !stratUnitQuery.isPending,
                 queryFn: function transformStratigraphyPicksToCurve(): WellboreStratigraphyCurveData[] {
+                    if (!_curveHeader) throw new Error(`Missing curve header provided for curve ${name}`);
+
                     // Casting the type, since this method only runs when stratUnitQuery.isPending is false, so we know it's not undefined
                     const data = stratUnitQuery.data as WellborePicksAndStratigraphicUnits_api;
                     const { stratigraphic_units, wellbore_picks } = data;
 
-                    const unitsToUse = _.filter(stratigraphic_units, ["stratUnitType", _sourceId]);
+                    const unitsToUse = _.filter(stratigraphic_units, ["stratUnitType", _curveHeader?.sourceId]);
 
                     const { unitPicks } = transformFormationData(wellbore_picks, unitsToUse as any);
 
@@ -134,12 +136,17 @@ export function useGeologyCurveDataQueries(wellboreUuid: string, plotConfigs: Te
 
     return useQueries({
         combine: mergeResults,
-        queries: plotConfigs.map(({ _sourceId, name }) => ({
-            queryKey: ["getWellboreGeologyData", wellboreUuid, _sourceId],
+        queries: plotConfigs.map(({ _curveHeader, name }) => ({
+            queryKey: ["getWellboreGeologyData", wellboreUuid, _curveHeader],
             enabled: Boolean(wellboreUuid && plotConfigs),
             queryFn: async function fetchAndTransformGeolCurveData(): Promise<WellboreGeologyCurveData[]> {
+                if (!_curveHeader) throw new Error(`Missing curve header provided for curve {name}`);
+
                 //! Assumes the entries are sorted on the backend
-                const result = await apiService.well.getWellboreGeologyData(wellboreUuid, _sourceId as string);
+                const result = await apiService.well.getWellboreGeologyData(
+                    wellboreUuid,
+                    _curveHeader.sourceId as string
+                );
 
                 if (result.length === 1) throw new Error("No entries found for geological header");
 

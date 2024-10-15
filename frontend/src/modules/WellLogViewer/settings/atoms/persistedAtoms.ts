@@ -1,3 +1,4 @@
+import { WellboreLogCurveHeader_api } from "@api";
 import { atomWithModuleInstanceStorage, clearModuleInstanceStorage } from "@framework/utils/atomUtils";
 import { TemplatePlot, TemplateTrack } from "@webviz/well-log-viewer/dist/components/WellLogTemplateTypes";
 
@@ -14,8 +15,8 @@ export type TemplatePlotConfig = Partial<TemplatePlot> & {
     _isValid: boolean;
     // This is used as the value for dropdowns. Even if the curvename is supposed to be unique,  In some rare cases, the curvename is duplicated across different well-logs.
     // The source of the fields data
-    _source: "geology" | "welllog" | "stratigraphy";
-    _sourceId: string | null;
+    // _curveHeader: Pick<WellboreLogCurveHeader_api, "source" | "sourceId" | "curveType" | "curveName"> | null;
+    _curveHeader: WellboreLogCurveHeader_api | null;
 };
 
 export type TemplateTrackConfig = Omit<TemplateTrack, "plots"> & {

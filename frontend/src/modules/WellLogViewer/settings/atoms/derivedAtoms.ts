@@ -1,4 +1,10 @@
-import { StratigraphicUnit_api, WellboreHeader_api, WellboreLogCurveHeader_api } from "@api";
+import {
+    StratigraphicUnit_api,
+    WellLogCurveSourceEnum_api,
+    WellLogCurveTypeEnum_api,
+    WellboreHeader_api,
+    WellboreLogCurveHeader_api,
+} from "@api";
 import { transformFormationData } from "@equinor/esv-intersection";
 import { EnsembleSetAtom } from "@framework/GlobalAtoms";
 import { WellPicksLayerData } from "@modules/Intersection/utils/layers/WellpicksLayer";
@@ -60,6 +66,24 @@ export const selectedWellborePicksAtom = atom<WellPicksLayerData>((get) => {
     }
 });
 
+export const availableContinuousCurvesAtom = atom((get) => {
+    const logCurveHeaders = get(wellLogCurveHeadersQueryAtom)?.data ?? [];
+
+    return _.filter(logCurveHeaders, ["curveType", WellLogCurveTypeEnum_api.CONTINUOUS]);
+});
+
+export const availableDiscreteCurvesAtom = atom((get) => {
+    const logCurveHeaders = get(wellLogCurveHeadersQueryAtom)?.data ?? [];
+
+    return _.filter(logCurveHeaders, ["curveType", WellLogCurveTypeEnum_api.DISCRETE]);
+});
+
+export const availableFlagCurvesAtom = atom((get) => {
+    const logCurveHeaders = get(wellLogCurveHeadersQueryAtom)?.data ?? [];
+
+    return _.filter(logCurveHeaders, ["curveType", WellLogCurveTypeEnum_api.FLAG]);
+});
+
 export const groupedCurveHeadersAtom = atom<Dictionary<WellboreLogCurveHeader_api[]>>((get) => {
     const logCurveHeaders = get(wellLogCurveHeadersQueryAtom)?.data ?? [];
 
@@ -98,15 +122,15 @@ export const wellLogTemplateTracks = atom<TemplateTrack[]>((get) => {
     });
 });
 
-type PossibleCurveGroups = Required<TemplatePlotConfig>["_source"];
+type PossibleCurveGroups = WellLogCurveSourceEnum_api;
 
 export const plotConfigsBySourceAtom = atom((get) => {
     const templateConfig = get(logViewerTrackConfigs);
 
     const curveGroups: Record<PossibleCurveGroups, TemplatePlotConfig[]> = {
-        geology: [],
-        welllog: [],
-        stratigraphy: [],
+        "smda::geology": [],
+        "smda::stratigraphy": [],
+        "ssdl::well_log": [],
     };
 
     templateConfig.forEach((track) => {
@@ -120,19 +144,19 @@ export const plotConfigsBySourceAtom = atom((get) => {
 });
 
 export const allSelectedGeologyCurvesAtom = atom<TemplatePlotConfig[]>((get) => {
-    const geolPlots = get(plotConfigsBySourceAtom).geology;
+    const geolPlots = get(plotConfigsBySourceAtom)["smda::geology"];
 
     return _.chain(geolPlots).filter("_isValid").uniqBy("_sourceId").value();
 });
 
 export const allSelectedStratigraphyCurves = atom<TemplatePlotConfig[]>((get) => {
-    const geolPlots = get(plotConfigsBySourceAtom).stratigraphy;
+    const geolPlots = get(plotConfigsBySourceAtom)["smda::stratigraphy"];
 
     return _.chain(geolPlots).filter("_isValid").uniqBy("_sourceId").value();
 });
 
 export const allSelectedWellLogCurvesAtom = atom<string[]>((get): string[] => {
-    const welllogPlots = get(plotConfigsBySourceAtom).welllog;
+    const welllogPlots = get(plotConfigsBySourceAtom)["ssdl::well_log"];
 
     return _.chain(welllogPlots)
         .flatMap(({ name, name2, _isValid }) => {

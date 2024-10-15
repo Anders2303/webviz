@@ -11,6 +11,7 @@ import { useAtomValue } from "jotai";
 import { SortablePlotList } from "./SortablePlotList";
 import { TrackSettingFragmentProps } from "./TrackSettings";
 
+import { availableContinuousCurvesAtom, availableFlagCurvesAtom } from "../../atoms/derivedAtoms";
 import { wellLogCurveHeadersQueryAtom } from "../../atoms/queryAtoms";
 
 export function ContinousTrackSettings(props: TrackSettingFragmentProps): React.ReactNode {
@@ -18,6 +19,11 @@ export function ContinousTrackSettings(props: TrackSettingFragmentProps): React.
 
     const curveHeadersQuery = useAtomValue(wellLogCurveHeadersQueryAtom);
     const curveHeadersError = usePropagateApiErrorToStatusWriter(curveHeadersQuery, props.statusWriter);
+
+    const availableCurveHeaders = [
+        ...useAtomValue(availableContinuousCurvesAtom),
+        ...useAtomValue(availableFlagCurvesAtom),
+    ];
 
     return (
         <>
@@ -36,7 +42,7 @@ export function ContinousTrackSettings(props: TrackSettingFragmentProps): React.
             <div className="col-span-2">
                 <PendingWrapper isPending={curveHeadersQuery.isPending} errorMessage={curveHeadersError ?? ""}>
                     <SortablePlotList
-                        availableCurveHeaders={curveHeadersQuery.data ?? []}
+                        availableCurveHeaders={availableCurveHeaders}
                         plots={props.trackConfig.plots}
                         onUpdatePlots={(plots) => props.onFieldChange({ plots: plots })}
                     />
