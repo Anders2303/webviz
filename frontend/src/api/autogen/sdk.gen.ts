@@ -120,9 +120,12 @@ import type {
     GetStatisticalVectorDataPerSensitivityError_api,
     GetStatisticalVectorDataPerSensitivityResponse_api,
     GetStatisticalVectorDataResponse_api,
-    GetStratigraphicUnitsData_api,
-    GetStratigraphicUnitsError_api,
-    GetStratigraphicUnitsResponse_api,
+    GetStratigraphicUnitsForCaseData_api,
+    GetStratigraphicUnitsForCaseError_api,
+    GetStratigraphicUnitsForCaseResponse_api,
+    GetStratigraphicUnitsForStratColumnData_api,
+    GetStratigraphicUnitsForStratColumnError_api,
+    GetStratigraphicUnitsForStratColumnResponse_api,
     GetSurfaceDataData_api,
     GetSurfaceDataError_api,
     GetSurfaceDataResponse_api,
@@ -647,14 +650,34 @@ export const getWellboreStratigraphicColumns = <ThrowOnError extends boolean = f
 };
 
 /**
- * Get Stratigraphic Units
+ * Get Stratigraphic Units For Case
  */
-export const getStratigraphicUnits = <ThrowOnError extends boolean = false>(
-    options: Options<GetStratigraphicUnitsData_api, ThrowOnError>
+export const getStratigraphicUnitsForCase = <ThrowOnError extends boolean = false>(
+    options: Options<GetStratigraphicUnitsForCaseData_api, ThrowOnError>
 ) => {
-    return (options?.client ?? client).get<GetStratigraphicUnitsResponse_api, GetStratigraphicUnitsError_api, ThrowOnError>({
+    return (options?.client ?? client).get<
+        GetStratigraphicUnitsForCaseResponse_api,
+        GetStratigraphicUnitsForCaseError_api,
+        ThrowOnError
+    >({
         ...options,
-        url: "/surface/stratigraphic_units",
+        url: "/surface/stratigraphic_units_for_case",
+    });
+};
+
+/**
+ * Get Stratigraphic Units For Strat Column
+ */
+export const getStratigraphicUnitsForStratColumn = <ThrowOnError extends boolean = false>(
+    options: Options<GetStratigraphicUnitsForStratColumnData_api, ThrowOnError>
+) => {
+    return (options?.client ?? client).get<
+        GetStratigraphicUnitsForStratColumnResponse_api,
+        GetStratigraphicUnitsForStratColumnError_api,
+        ThrowOnError
+    >({
+        ...options,
+        url: "/surface/stratigraphic_units_for_strat_column",
     });
 };
 
