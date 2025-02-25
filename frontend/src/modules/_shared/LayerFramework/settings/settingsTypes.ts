@@ -9,6 +9,7 @@ export enum SettingType {
     TIME_OR_INTERVAL = "timeOrInterval",
     POLYGONS_ATTRIBUTE = "polygonsAttribute",
     POLYGONS_NAME = "polygonsName",
+    SMDA_WELLBORE_HEADER = "smdaWellboreHeader",
     SMDA_WELLBORE_HEADERS = "smdaWellboreHeaders",
     GRID_NAME = "gridName",
     GRID_LAYER_I_RANGE = "gridLayerIRange",
@@ -19,4 +20,7 @@ export enum SettingType {
     SEISMIC_INLINE = "seismicInline",
     SEISMIC_CROSSLINE = "seismicCrossline",
     SEISMIC_DEPTH_SLICE = "seismicDepthSlice",
+    STRAT_COLUMN = "stratColumn",
+    WELL_PICKS = "well_picks",
+    SMDA_INTERPRETER = "smdaInterpreter",
 }
