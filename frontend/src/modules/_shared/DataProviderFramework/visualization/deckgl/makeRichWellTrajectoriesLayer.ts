@@ -90,6 +90,7 @@ export function makeRichWellTrajectoriesLayer({
     const formationSegments: WellTrajectoryFormationSegments_api[] = getStoredData("formationSegments");
     const productionData = getStoredData("productionData");
     const injectionData = getStoredData("injectionData");
+
     const perforations: WellborePerforations_api[] = getStoredData("perforations");
     const screens: WellboreCompletions_api[] = getStoredData("screens");
     // **************************
@@ -167,22 +168,23 @@ export function makeRichWellTrajectoriesLayer({
     const gasInjMin = getSetting(Setting.PDM_GAS_INJ_MIN) ?? 0;
 
     //TODO Fix Filter wells to only include those with valid flow data
-    const filteredWellboreData =
-        productionData && injectionData
-            ? wellboreData.filter((wb) => {
-                  const color = setColorByFlowData(
-                      oilProdMin,
-                      gasProdMin,
-                      waterProdMin,
-                      waterInjMin,
-                      gasInjMin,
-                      wb.uniqueIdentifier,
-                      productionData,
-                      injectionData,
-                  );
-                  return color !== null;
-              })
-            : wellboreData;
+    const filteredWellboreData = wellboreData;
+    // TODO: reintroduce filter
+    // productionData.length && injectionData.length
+    //     ? wellboreData.filter((wb) => {
+    //           const color = setColorByFlowData(
+    //               oilProdMin,
+    //               gasProdMin,
+    //               waterProdMin,
+    //               waterInjMin,
+    //               gasInjMin,
+    //               wb.uniqueIdentifier,
+    //               productionData,
+    //               injectionData,
+    //           );
+    //           return color !== null;
+    //       })
+    //     : wellboreData;
 
     const wellsLayer = new RichWellsLayer({
         id,
