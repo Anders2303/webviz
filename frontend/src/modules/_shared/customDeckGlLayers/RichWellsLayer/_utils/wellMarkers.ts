@@ -3,7 +3,7 @@ import type { Geometry } from "geojson";
 import { rotatePoint2Around, vec2toArray, type Vec2 } from "@lib/utils/vec2";
 
 const PERFORATION_WIDTH = 2;
-const PERFORATION_OFFSET = 4;
+const PERFORATION_OFFSET = 7;
 const PERFORATION_HEIGHT = 25;
 
 const SCREEN_HEIGHT = 10;

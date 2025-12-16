@@ -1,11 +1,15 @@
 import type { UpdateParameters } from "@deck.gl/core";
+import type { PathLayerProps } from "@deck.gl/layers";
 import { PathLayer } from "@deck.gl/layers";
 import type { ShaderModule } from "@luma.gl/shadertools";
 
-type DashedSectionsPathLayerProps<TData = unknown> = {
+type _DashedSectionsPathLayerProps<TData = unknown> = {
     dashArray: [number, number];
     isSegmentDashed: (data: TData, segmentIndex: number) => boolean;
 };
+
+export type DashedSectionsPathLayerProps<TData = unknown> = _DashedSectionsPathLayerProps<TData> &
+    PathLayerProps<TData>;
 
 const uniformBlock = /*glsl*/ `
     uniform dashSectionUniforms {
@@ -43,7 +47,7 @@ const dashSectionUniformModule = {
             }
         `,
     },
-} as const satisfies ShaderModule<Partial<DashedSectionsPathLayerProps>>;
+} as const satisfies ShaderModule<Partial<_DashedSectionsPathLayerProps>>;
 
 export class DashedSectionsPathLayer<TData = unknown> extends PathLayer<
     TData,

@@ -5,7 +5,9 @@ import simplify from "simplify-js";
 import type { WellboreTrajectory_api } from "@api";
 import { point2Distance, vec2FromArray } from "@lib/utils/vec2";
 import { distance, fromArray } from "@lib/utils/vec3";
+import * as vec3 from "@lib/utils/vec3";
 
+import { getSegmentIndexForMd } from "../customDeckGlLayers/WellsLayer/_private/wellTrajectoryUtils";
 import type { GeoWellFeature } from "../DataProviderFramework/visualization/deckgl/makeDrilledWellTrajectoriesLayer";
 
 function normalizeVector(vector: number[]): number[] {
@@ -67,6 +69,58 @@ export function simplifyWellTrajectoryRadialDist<TTrajectory extends MinimalWell
         }
     }
     return simplifiedTrajectory;
+}
+
+// const MD_MATCH_THRESHOLD = 0.01;
+const MD_MATCH_THRESHOLD = 0.01;
+
+/**
+ * Create a new trajectory and MD array by injecting new MD entries into an
+ * existing trajectory. New points are interpolated linearly
+ * @param trajectory A list 3D positions describing the trajectory path
+ * @param mdArray A list of MD values per segment
+ * @param mds MD values to inject into the trajectory
+ * @returns A new trajectory and MD array with the new entries injected
+ */
+export function createTrajectoryWithMdEntries<TTrajectory extends MinimalWellboreTrajectory>(
+    trajectory: TTrajectory,
+    ...mds: number[]
+): TTrajectory {
+    if (trajectory.mdArr.length < 2) return { ...trajectory };
+    if (!mds.length) return { ...trajectory };
+
+    const { eastingArr, northingArr, tvdMslArr, mdArr } = trajectory;
+
+    const newTrajectory = {
+        ...trajectory,
+        // ! These path arrays will be mutated as we add points
+        eastingArr: [...eastingArr],
+        northingArr: [...northingArr],
+        tvdMslArr: [...tvdMslArr],
+        mdArr: [...mdArr],
+    };
+
+    for (const md of mds) {
+        const segmentIndex = getSegmentIndexForMd(md, newTrajectory.mdArr); // Closest *preceding* point
+
+        if (segmentIndex === -1) continue; // MD is not on trajectory
+
+        const segmentMd = newTrajectory.mdArr[segmentIndex];
+
+        if (md < segmentMd - MD_MATCH_THRESHOLD || md > segmentMd + MD_MATCH_THRESHOLD) {
+            const point = getCoordinateForMd(newTrajectory, md);
+
+            if (point) {
+                //Inject the point *after* the point we located
+                newTrajectory.eastingArr.splice(segmentIndex + 1, 0, point[0]);
+                newTrajectory.northingArr.splice(segmentIndex + 1, 0, point[1]);
+                newTrajectory.tvdMslArr.splice(segmentIndex + 1, 0, point[2]);
+                newTrajectory.mdArr.splice(segmentIndex + 1, 0, md);
+            }
+        }
+    }
+
+    return newTrajectory;
 }
 
 /**
@@ -233,4 +287,42 @@ export function wellTrajectoryToGeojson(
     };
 
     return geometryCollection;
+}
+
+/**
+ * Interpolates 3D coordinates for a given MD on a trajectory
+ * @param md A measured depth along the trajectory
+ * @param mdArray A list MD values per segment
+ * @param trajectory A list 3D positions describing the trajectory path
+ * @returns An interpolated 3D position
+ */
+export function getCoordinateForMd(trajectory: MinimalWellboreTrajectory, md: number): number[] | null {
+    const { mdArr, eastingArr, northingArr, tvdMslArr } = trajectory;
+    const segmentIndex = getSegmentIndexForMd(md, mdArr);
+
+    if (segmentIndex === -1) {
+        return null;
+    }
+
+    const md0 = mdArr[segmentIndex];
+    const md1 = mdArr[segmentIndex + 1];
+
+    const pos0 = [eastingArr[segmentIndex], northingArr[segmentIndex], tvdMslArr[segmentIndex]];
+    const pos1 = [eastingArr[segmentIndex + 1], northingArr[segmentIndex + 1], tvdMslArr[segmentIndex + 1]];
+
+    const survey0 = vec3.fromArray(pos0);
+    const survey1 = vec3.fromArray(pos1);
+
+    const dv = vec3.distance(survey0, survey1) as number;
+    if (dv === 0) {
+        return null;
+    }
+
+    const scalar_projection = (md - md0) / (md1 - md0);
+
+    return [
+        survey0.x + scalar_projection * (survey1.x - survey0.x),
+        survey0.y + scalar_projection * (survey1.y - survey0.y),
+        survey0.z + scalar_projection * (survey1.z - survey0.z),
+    ];
 }

@@ -13,12 +13,9 @@ import type {
     WellTrajectoryFormationSegments_api,
 } from "@api";
 import type { RichDrilledWellTrajectoriesSettings } from "@modules/2DViewer/DataProviderFramework/customDataProviderImplementations/RichDrilledWellTrajectoriesProvider";
-import type {
-    FormationSegmentData,
-    RichWellsLayerProps,
-    WellboreData,
-} from "@modules/_shared/customDeckGlLayers/RichWellsLayer/RichWellsLayer";
+import type { RichWellsLayerProps } from "@modules/_shared/customDeckGlLayers/RichWellsLayer/RichWellsLayer";
 import { RichWellsLayer } from "@modules/_shared/customDeckGlLayers/RichWellsLayer/RichWellsLayer";
+import type { FormationSegmentData, WellboreData } from "@modules/_shared/customDeckGlLayers/RichWellsLayer/types";
 
 import { Setting } from "../../settings/settingsDefinitions";
 import type { TransformerArgs } from "../VisualizationAssembler";
@@ -214,6 +211,8 @@ export function makeRichWellTrajectoriesLayer({
                 return { r: 128, g: 128, b: 128 };
             }
         },
+        pickable: true,
+        autoHighlight: true,
     });
 
     return wellsLayer;

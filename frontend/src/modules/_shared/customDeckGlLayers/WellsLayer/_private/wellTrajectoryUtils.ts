@@ -1,3 +1,5 @@
+import { allSameLength } from "@lib/utils/arrays";
+import * as vec2 from "@lib/utils/vec2";
 import * as vec3 from "@lib/utils/vec3";
 
 function squared_distance(a: vec3.Vec3, b: vec3.Vec3): number {
@@ -96,6 +98,13 @@ export function getSegmentIndexForMd(md: number, mdArray: number[]): number {
     return segmentIndex;
 }
 
+/**
+ * Interpolates 3D coordinates for a given MD on a trajectory
+ * @param md A measured depth along the trajectory
+ * @param mdArray A list MD values per segment
+ * @param trajectory A list 3D positions describing the trajectory path
+ * @returns An interpolated 3D position
+ */
 export function getCoordinateForMd(md: number, mdArray: number[], trajectory: vec3.Vec3[]): vec3.Vec3 | null {
     const segmentIndex = getSegmentIndexForMd(md, mdArray);
 
@@ -121,4 +130,69 @@ export function getCoordinateForMd(md: number, mdArray: number[], trajectory: ve
         y: survey0.y + scalar_projection * (survey1.y - survey0.y),
         z: survey0.z + scalar_projection * (survey1.z - survey0.z),
     };
+}
+
+/**
+ * Interpolates MD values for one or more TVDs. Note that a single TVD can return multiple MD values.
+ * @param tvdArray An array of TVD values per segment
+ * @param mdArray An array of MD values per segment
+ * @param tvds One or more TVD values to interpolate MDs for
+ * @returns An array of interpolated MD values
+ */
+export function getMdsForTvds(tvdArray: number[], mdArray: number[], ...tvds: number[]): number[] {
+    if (!allSameLength(tvdArray, mdArray)) throw Error("Segment arrays are not of equal length");
+    if (tvdArray.length < 2) return [];
+    if (!tvds.length) return [];
+
+    // Sort descending so popping returns the smallest value
+    const sortedTvdsToFind = tvds.toSorted((a, b) => b - a);
+
+    let tvdToFind = sortedTvdsToFind.pop();
+    const mdValues = [] as number[];
+
+    for (let index = 0; index < mdArray.length - 1; index++) {
+        if (tvdToFind === undefined) break;
+
+        const md = mdArray[index];
+        const tvd = tvdArray[index];
+
+        const nextMd = mdArray[index + 1];
+        const nextTvd = tvdArray[index + 1];
+
+        // Process all TVDs that fall within this segment
+        while (tvdToFind !== undefined && tvdToFind >= tvd && tvdToFind <= nextTvd) {
+            const interpolatedT = (tvdToFind - tvd) / (nextTvd - tvd);
+            const interpolatedMd = md + interpolatedT * (nextMd - md);
+
+            mdValues.push(interpolatedMd);
+            tvdToFind = sortedTvdsToFind.pop();
+        }
+    }
+
+    return mdValues;
+}
+
+/**
+ * Get the normal angle at a given MD in a 2-dimensional trajectory
+ * @param md MD point to get the normal angle at
+ * @param mdArray A list MD values per segment
+ * @param trajectory A list 2D positions describing the trajectory path
+ * @returns An angle in radians, or null if MD is out of bounds
+ */
+export function getNormalAngle2DAtMd(md: number, mdArray: number[], trajectory: vec2.Vec2[]): number | null {
+    const segmentIndex = getSegmentIndexForMd(md, mdArray);
+
+    if (segmentIndex === -1) return null;
+
+    const segmentPointStart = trajectory[segmentIndex];
+    const segmentPointEnd = trajectory[segmentIndex + 1];
+
+    const dirVec: vec2.Vec2 = vec2.subtractVec2(segmentPointEnd, segmentPointStart);
+    const angle = Math.atan2(dirVec.y, dirVec.x);
+
+    if (angle > Math.PI || angle < -Math.PI) {
+        return angle + Math.PI;
+    }
+
+    return angle;
 }

@@ -35,3 +35,15 @@ export function sortStringArray(values: string[], valuesByOrder: string[]): stri
         return a.localeCompare(b); // neither in order list
     });
 }
+
+/**
+ * Checks if all provided arrays have the same length
+ * @param arrays Arrays to check
+ * @returns True if all arrays have the same length, false otherwise
+ */
+export function allSameLength(...arrays: any[]): boolean {
+    if (arrays.length === 0) return true;
+
+    const firstLength = arrays[0].length ?? 0;
+    return arrays.every((arr) => (arr.length ?? 0) === firstLength);
+}
