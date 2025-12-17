@@ -148,9 +148,6 @@ import type {
     GetWellborePicksForPickIdentifierData_api,
     GetWellborePicksForPickIdentifierResponse_api,
     GetWellborePicksForPickIdentifierError_api,
-    DeprecatedGetWellborePicksForWellboreData_api,
-    DeprecatedGetWellborePicksForWellboreResponse_api,
-    DeprecatedGetWellborePicksForWellboreError_api,
     GetWellborePicksInStratColumnData_api,
     GetWellborePicksInStratColumnResponse_api,
     GetWellborePicksInStratColumnError_api,
@@ -1046,7 +1043,7 @@ export const getFieldScreens = <ThrowOnError extends boolean = false>(
 
 /**
  * Get Well Trajectories
- * Get well trajectories for field
+ * Get trajectories for wellbores in a given field. Can optionally return only a subset if a list of uuids are given
  */
 export const getWellTrajectories = <ThrowOnError extends boolean = false>(
     options: Options<GetWellTrajectoriesData_api, ThrowOnError>,
@@ -1059,7 +1056,7 @@ export const getWellTrajectories = <ThrowOnError extends boolean = false>(
 
 /**
  * Get Wellbore Pick Identifiers
- * Get wellbore pick identifiers for field and stratigraphic column
+ * Get wellbore pick identifiers for a given stratigraphic column
  */
 export const getWellborePickIdentifiers = <ThrowOnError extends boolean = false>(
     options: Options<GetWellborePickIdentifiersData_api, ThrowOnError>,
@@ -1076,7 +1073,7 @@ export const getWellborePickIdentifiers = <ThrowOnError extends boolean = false>
 
 /**
  * Get Wellbore Picks For Pick Identifier
- * Get picks for wellbores for field and pick identifier
+ * Get wellbore picks for a field and pick identifier
  *
  * This implies picks for multiple wellbores for given field and pick identifier.
  * E.g. picks for all wellbores in a given surface in a field.
@@ -1095,27 +1092,8 @@ export const getWellborePicksForPickIdentifier = <ThrowOnError extends boolean =
 };
 
 /**
- * Deprecated Get Wellbore Picks For Wellbore
- * Get wellbore picks for field and pick identifier
- *
- * NOTE: This endpoint is deprecated and is to be deleted when refactoring intersection module
- */
-export const deprecatedGetWellborePicksForWellbore = <ThrowOnError extends boolean = false>(
-    options: Options<DeprecatedGetWellborePicksForWellboreData_api, ThrowOnError>,
-) => {
-    return (options?.client ?? client).get<
-        DeprecatedGetWellborePicksForWellboreResponse_api,
-        DeprecatedGetWellborePicksForWellboreError_api,
-        ThrowOnError
-    >({
-        ...options,
-        url: "/well/deprecated_wellbore_picks_for_wellbore/",
-    });
-};
-
-/**
  * Get Wellbore Picks In Strat Column
- * Get wellbore picks for a single wellbore with stratigraphic column identifier
+ * Get wellbore picks for a single wellbore within stratigraphic column
  */
 export const getWellborePicksInStratColumn = <ThrowOnError extends boolean = false>(
     options: Options<GetWellborePicksInStratColumnData_api, ThrowOnError>,
@@ -1132,6 +1110,7 @@ export const getWellborePicksInStratColumn = <ThrowOnError extends boolean = fal
 
 /**
  * Get Wellbore Stratigraphic Columns
+ * Get stratigraphic columns for a given wellbore
  */
 export const getWellboreStratigraphicColumns = <ThrowOnError extends boolean = false>(
     options: Options<GetWellboreStratigraphicColumnsData_api, ThrowOnError>,
@@ -1148,7 +1127,7 @@ export const getWellboreStratigraphicColumns = <ThrowOnError extends boolean = f
 
 /**
  * Get Wellbore Completions
- * Get well bore completions for a single well bore
+ * Get wellbore completions for a given wellbore
  */
 export const getWellboreCompletions = <ThrowOnError extends boolean = false>(
     options: Options<GetWellboreCompletionsData_api, ThrowOnError>,
@@ -1161,7 +1140,7 @@ export const getWellboreCompletions = <ThrowOnError extends boolean = false>(
 
 /**
  * Get Wellbore Casings
- * Get well bore casings for a single well bore
+ * Get wellbore casings for a given wellbore
  */
 export const getWellboreCasings = <ThrowOnError extends boolean = false>(
     options: Options<GetWellboreCasingsData_api, ThrowOnError>,
@@ -1174,7 +1153,7 @@ export const getWellboreCasings = <ThrowOnError extends boolean = false>(
 
 /**
  * Get Wellbore Perforations
- * Get well bore casing for a single well bore
+ * Get wellbore perforations for a given wellbore
  */
 export const getWellborePerforations = <ThrowOnError extends boolean = false>(
     options: Options<GetWellborePerforationsData_api, ThrowOnError>,

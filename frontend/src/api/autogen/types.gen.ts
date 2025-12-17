@@ -1280,6 +1280,9 @@ export type WellTrajectoryFormationSegments_api = {
     formationSegments: Array<FormationSegment_api>;
 };
 
+/**
+ * Single casing for a wellbore
+ */
 export type WellboreCasing_api = {
     itemType: string;
     diameterNumeric: number;
@@ -1293,6 +1296,9 @@ export type WellboreCasing_api = {
     endDepth: number;
 };
 
+/**
+ * Single completion for a wellbore
+ */
 export type WellboreCompletion_api = {
     mdTop: number;
     mdBottom: number;
@@ -1304,7 +1310,7 @@ export type WellboreCompletion_api = {
 };
 
 /**
- * Simplified completion schema for use in nested structures (without wellbore identifiers)
+ * Completions_api for a wellbore
  */
 export type WellboreCompletions_api = {
     wellboreUuid: string;
@@ -1356,6 +1362,9 @@ export type WellboreLogCurveHeader_api = {
     curveUnit: string | null;
 };
 
+/**
+ * Single perforation for a wellbore
+ */
 export type WellborePerforation_api = {
     mdTop: number;
     mdBottom: number;
@@ -1367,6 +1376,9 @@ export type WellborePerforation_api = {
     dateClosed: string | null;
 };
 
+/**
+ * Perforations for a wellbore
+ */
 export type WellborePerforations_api = {
     wellboreUuid: string;
     perforations: Array<WellborePerforation_api>;
@@ -3451,39 +3463,6 @@ export type GetWellborePicksForPickIdentifierResponses_api = {
 
 export type GetWellborePicksForPickIdentifierResponse_api =
     GetWellborePicksForPickIdentifierResponses_api[keyof GetWellborePicksForPickIdentifierResponses_api];
-
-export type DeprecatedGetWellborePicksForWellboreData_api = {
-    body?: never;
-    path?: never;
-    query: {
-        /**
-         * Wellbore uuid
-         */
-        wellbore_uuid: string;
-        zCacheBust?: string;
-    };
-    url: "/well/deprecated_wellbore_picks_for_wellbore/";
-};
-
-export type DeprecatedGetWellborePicksForWellboreErrors_api = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError_api;
-};
-
-export type DeprecatedGetWellborePicksForWellboreError_api =
-    DeprecatedGetWellborePicksForWellboreErrors_api[keyof DeprecatedGetWellborePicksForWellboreErrors_api];
-
-export type DeprecatedGetWellborePicksForWellboreResponses_api = {
-    /**
-     * Successful Response
-     */
-    200: Array<WellborePick_api>;
-};
-
-export type DeprecatedGetWellborePicksForWellboreResponse_api =
-    DeprecatedGetWellborePicksForWellboreResponses_api[keyof DeprecatedGetWellborePicksForWellboreResponses_api];
 
 export type GetWellborePicksInStratColumnData_api = {
     body?: never;
