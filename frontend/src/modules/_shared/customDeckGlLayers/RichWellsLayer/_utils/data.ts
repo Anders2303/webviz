@@ -6,7 +6,7 @@ import type { Vec3 } from "@lib/utils/vec3";
 import {
     getCoordinateForMd,
     getMdsForTvds,
-    getNormalAngle2DAtMd,
+    getNormalAngleAtMd2D,
     getSegmentIndexForMd,
 } from "../../WellsLayer/_private/wellTrajectoryUtils";
 import type { RichWellsLayerProps } from "../RichWellsLayer";
@@ -90,7 +90,7 @@ export function buildWellborePerforationMarkers(
         // Perforations have a little bit of length (the size of the hole?). Use the point between as the geometry's anchor
         const perforationAnchorMd = (perforation.mdTop + perforation.mdBottom) / 2;
 
-        const rotation = getNormalAngle2DAtMd(perforationAnchorMd, wellboreTrajectory.mdArr, vec3Trajectory);
+        const rotation = getNormalAngleAtMd2D(perforationAnchorMd, wellboreTrajectory.mdArr, vec3Trajectory);
 
         if (rotation === null) continue;
 
@@ -104,7 +104,7 @@ export function buildWellborePerforationMarkers(
                 geometry: buildPerforationMarkerGeology(perforationCoordinate, rotation),
                 properties: {
                     ...wellboreProperties,
-                    type: "screen",
+                    type: "perforation",
                     md: perforationAnchorMd,
                     tvd: perforationCoordinate.z,
                     segment: wellboreProperties.segmentArr[segmentIndex],
@@ -154,8 +154,8 @@ export function buildWellboreScreenMarkers(
         if (nextScreen?.mdTop !== undefined && screen.mdBottom >= nextScreen.mdTop) continue;
         else screenMdEnd = screen.mdBottom;
 
-        const rotationStart = getNormalAngle2DAtMd(screenMdStart, wellboreTrajectory.mdArr, vec3Trajectory);
-        const rotationEnd = getNormalAngle2DAtMd(screenMdEnd, wellboreTrajectory.mdArr, vec3Trajectory);
+        const rotationStart = getNormalAngleAtMd2D(screenMdStart, wellboreTrajectory.mdArr, vec3Trajectory);
+        const rotationEnd = getNormalAngleAtMd2D(screenMdEnd, wellboreTrajectory.mdArr, vec3Trajectory);
 
         if (rotationStart !== null && rotationEnd !== null) {
             const coordinateStart = getCoordinateForMd(screenMdStart, wellboreTrajectory.mdArr, vec3Trajectory);

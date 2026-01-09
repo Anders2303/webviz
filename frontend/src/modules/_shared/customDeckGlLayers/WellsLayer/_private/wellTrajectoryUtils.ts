@@ -179,7 +179,7 @@ export function getMdsForTvds(tvdArray: number[], mdArray: number[], ...tvds: nu
  * @param trajectory A list 2D positions describing the trajectory path
  * @returns An angle in radians, or null if MD is out of bounds
  */
-export function getNormalAngle2DAtMd(md: number, mdArray: number[], trajectory: vec2.Vec2[]): number | null {
+export function getNormalAngleAtMd2D(md: number, mdArray: number[], trajectory: vec2.Vec2[]): number | null {
     const segmentIndex = getSegmentIndexForMd(md, mdArray);
 
     if (segmentIndex === -1) return null;

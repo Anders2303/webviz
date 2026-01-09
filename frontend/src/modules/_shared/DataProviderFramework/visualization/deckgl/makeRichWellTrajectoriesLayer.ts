@@ -185,6 +185,7 @@ export function makeRichWellTrajectoriesLayer({
 
     const wellsLayer = new RichWellsLayer({
         id,
+        name: "Wells",
         data: filteredWellboreData,
         segmentFilterValue: shouldApplySegmentFilter ? ["WITHIN_FILTER"] : undefined,
         tvdFilterValue: tvdRange,

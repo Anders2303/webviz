@@ -134,7 +134,7 @@ export function ReadoutWrapper(props: ReadoutWrapperProps): React.ReactNode {
             pickDepth: 2,
         },
         triggerHome: props.triggerHome,
-        pickingRadius: 5,
+        pickingRadius: 20,
         layers: adjustedLayers,
         onMouseEvent: handleMouseEvent,
         getTooltip: tooltip,
@@ -146,6 +146,8 @@ export function ReadoutWrapper(props: ReadoutWrapperProps): React.ReactNode {
 
     const handleMainDivLeave = React.useCallback(() => setHideReadout(true), []);
     const handleMainDivEnter = React.useCallback(() => setHideReadout(false), []);
+
+    console.log("pickingInfoPerView", pickingInfoPerView);
 
     return (
         <div

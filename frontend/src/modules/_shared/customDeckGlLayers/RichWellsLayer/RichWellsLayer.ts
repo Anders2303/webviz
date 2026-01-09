@@ -1,14 +1,25 @@
-import type { LayersList, UpdateParameters, FilterContext, Color, LayerProps, PickingInfo, Layer } from "@deck.gl/core";
+import type {
+    LayersList,
+    UpdateParameters,
+    FilterContext,
+    Color,
+    LayerProps,
+    PickingInfo,
+    Layer,
+    GetPickingInfoParams,
+} from "@deck.gl/core";
 import { CompositeLayer } from "@deck.gl/core";
 import { DataFilterExtension } from "@deck.gl/extensions";
 import type { GeoJsonLayerProps } from "@deck.gl/layers";
 import { GeoJsonLayer } from "@deck.gl/layers";
 import { GL } from "@luma.gl/constants";
+import type { PropertyDataType } from "@webviz/subsurface-viewer";
 import { LabelOrientation, WellLabelLayer } from "@webviz/subsurface-viewer/dist/layers/wells/layers/wellLabelLayer";
+import type { WellsPickInfo } from "@webviz/subsurface-viewer/dist/layers/wells/types";
 import type { Position, Feature, FeatureCollection } from "geojson";
 import { inRange, zip, zipWith } from "lodash";
 
-import { allSameLength } from "@lib/utils/arrays";
+import { allSameLength, pushIfDefined } from "@lib/utils/arrays";
 import { point2Distance, vec2FromArray } from "@lib/utils/vec2";
 import { createTrajectoryWithMdEntries, simplifyWellTrajectoryRadialDist } from "@modules/_shared/utils/wellbore";
 
@@ -22,6 +33,7 @@ import {
     mergeScreenSegments,
 } from "./_utils/data";
 import { getWithAccessorLike } from "./_utils/deckgl";
+import { buildTrajectoryReadout, buildMarkerReadout } from "./_utils/readout";
 import type { TrajectoryFilterExtensionProps } from "./TvdFilterExtension";
 import type {
     WellboreData,
@@ -34,8 +46,15 @@ import type {
 
 const SIMPLIFICATION_RADIAL_DIST = 1.5;
 
+export enum SubLayerId {
+    PATH = "well-paths",
+    MARKER = "well-markers",
+    LABEL = "well-labels",
+}
+
 export type RichWellsLayerProps = {
     data: WellboreData[];
+    name: string;
 
     getIsSelected?: (d: WellboreData) => boolean;
 
@@ -69,6 +88,11 @@ export class RichWellsLayer extends CompositeLayer<RichWellsLayerProps> {
         super(props);
 
         this.getWellboreColor = this.getWellboreColor.bind(this);
+        this._getSubLayerId = this._getSubLayerId.bind(this);
+    }
+
+    private _getSubLayerId(subLayerId: SubLayerId): string {
+        return this.getSubLayerProps({ id: subLayerId }).id;
     }
 
     // GeoJsonLayer handles it's own hight indices internally, so auto-highlight via
@@ -85,6 +109,84 @@ export class RichWellsLayer extends CompositeLayer<RichWellsLayerProps> {
         }
 
         return false;
+    }
+
+    // getPickingInfo({ info }: GetPickingInfoParams): PickingInfo {
+    //     console.log(">>>", info);
+    //     return info;
+    // }
+
+    getPickingInfo({ info, mode, sourceLayer }: GetPickingInfoParams): WellsPickInfo {
+        console.log(sourceLayer?.toString(), info, info.index, info.coordinate);
+
+        // Surely logName should be optional, no?
+        if (!sourceLayer) return { ...info, logName: "" };
+        if (info.index === -1) return { ...info, logName: "" };
+
+        const subLayerObject = { ...info.object };
+        // ! This will mutate the original info object
+        const sourceInfoObject = super.getPickingInfo({ info, mode, sourceLayer }).object;
+
+        console.log(subLayerObject, sourceInfoObject);
+
+        const properties: PropertyDataType[] = [];
+        let logName;
+        // const wellName = info.object.__source.object.uniqueIdentifier;
+        let wellName;
+
+        let mdValue;
+        let tvdValue;
+
+        switch (sourceLayer.id) {
+            case this._getSubLayerId(SubLayerId.MARKER): {
+                const marker = subLayerObject as WellboreMarkerFeature;
+                const readout = buildMarkerReadout(marker);
+
+                pushIfDefined(properties, readout);
+                break;
+            }
+
+            case this._getSubLayerId(SubLayerId.PATH): {
+                const pathFeature = subLayerObject as WellboreTrajectory;
+
+                const readout = buildTrajectoryReadout(pathFeature, info.coordinate!);
+
+                pushIfDefined(properties, readout);
+                break;
+            }
+            default:
+                break;
+        }
+
+        // const mdProperty = getMd();
+
+        if (info.coordinate && wellName) {
+            console.log("path", path);
+
+            // properties.push({
+            //     name: `MD ${wellName}`,
+            //     value: getMd(info.coordinate, subLayerObject.)",
+            // });
+        }
+
+        // const info2 = super.getPickingInfo({ info, mode, sourceLayer });
+
+        // console.log("sub layer info", info2?.object?.uuid);
+
+        // const { info } = params;
+        // console.log("picking", info, info.object?.uniqueIdentifier);
+
+        // console.log("picking", info2, info2.object?.uniqueIdentifier);
+        // info.__AAAA__ = "AAAAA";
+
+        // console.log("properties...", properties);
+
+        return {
+            ...info,
+            properties: properties,
+            // @ts-expect-error -- Coming in update
+            wellName: wellName,
+        };
     }
 
     updateState({ props, changeFlags }: UpdateParameters<this>) {
@@ -200,7 +302,7 @@ export class RichWellsLayer extends CompositeLayer<RichWellsLayerProps> {
     }
 
     filterSubLayer(context: FilterContext): boolean {
-        if (context.layer.id === "welltrajectory-labels-layer") {
+        if (context.layer.id.endsWith(SubLayerId.LABEL)) {
             return context.viewport.zoom > -4;
         }
 
@@ -245,7 +347,7 @@ export class RichWellsLayer extends CompositeLayer<RichWellsLayerProps> {
                 this.getSubLayerProps({
                     ...sharedProps,
                     data: this.state.wellboreTrajectories,
-                    id: "well-path-layer",
+                    id: SubLayerId.PATH,
                     getColor: this.getWellboreColor,
                     widthMinPixels: sharedProps.lineWidthMinPixels,
                     getWidth: sharedProps.getLineWidth,
@@ -293,7 +395,7 @@ export class RichWellsLayer extends CompositeLayer<RichWellsLayerProps> {
             new GeoJsonLayer({
                 ...this.getSubLayerProps({
                     ...sharedProps,
-                    id: "well-markers-layer",
+                    id: SubLayerId.MARKER,
                     data: this.state.wellboreMarkers,
 
                     getLineColor: this.getWellboreColor,
@@ -323,7 +425,10 @@ export class RichWellsLayer extends CompositeLayer<RichWellsLayerProps> {
             // --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
             // ---[ Well labels ]- --- --- --- --- --- --- --- --- --- ---
             new WellLabelLayer({
-                id: "welltrajectory-labels-layer",
+                ...this.getSubLayerProps({
+                    id: SubLayerId.LABEL,
+                    positionFormat: "XY",
+                }),
 
                 data: this.state.geoTrajectories.features,
                 mergeLabels: false,
@@ -337,9 +442,7 @@ export class RichWellsLayer extends CompositeLayer<RichWellsLayerProps> {
                         ? LabelOrientation.TANGENT
                         : LabelOrientation.HORIZONTAL,
 
-                positionFormat: "XY",
-
-                // @ts-expect-error --- Subsurface type is a bit too aggressive
+                // // @ts-expect-error --- Subsurface type is a bit too aggressive
                 getText: (d: WellboreTrajectoryFeature) => d.properties.identifier,
                 getBackgroundColor: [255, 255, 255, 255 * 0.1],
                 // getColor: []
@@ -347,7 +450,7 @@ export class RichWellsLayer extends CompositeLayer<RichWellsLayerProps> {
                 background: true,
                 visible: true,
 
-                // @ts-expect-error -- Parameter type doesn't expose these
+                // // @ts-expect-error -- Parameter type doesn't expose these
                 parameters: { [GL.DEPTH_TEST]: false },
             }),
         ];

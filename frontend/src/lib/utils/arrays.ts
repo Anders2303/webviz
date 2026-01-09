@@ -47,3 +47,9 @@ export function allSameLength(...arrays: any[]): boolean {
     const firstLength = arrays[0].length ?? 0;
     return arrays.every((arr) => (arr.length ?? 0) === firstLength);
 }
+
+export function pushIfDefined<T>(array: T[], value: T | undefined) {
+    if (value !== undefined) {
+        array.push(value);
+    }
+}
