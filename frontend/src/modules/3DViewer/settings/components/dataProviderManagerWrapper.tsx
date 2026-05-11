@@ -44,12 +44,17 @@ export function DataProviderManagerWrapper(props: LayerManagerComponentWrapperPr
     const groupDelegate = props.dataProviderManager.getGroupDelegate();
     usePublishSubscribeTopicValue(groupDelegate, GroupDelegateTopic.CHILDREN);
 
-    function handleLayerAction(identifier: string, groupDelegate: GroupDelegate) {
+    function handleLayerAction(
+        identifier: string,
+        groupDelegate: GroupDelegate,
+        requestOpenMenuForId: (id: string) => void,
+    ) {
         switch (identifier) {
             case "view": {
                 const color = colorSet.getNextColor();
                 const view = GroupRegistry.makeGroup(GroupType.VIEW, props.dataProviderManager, color);
                 groupDelegate.appendChild(view);
+                requestOpenMenuForId(view.getItemDelegate().getId());
                 return;
             }
             case "delta-surface":
@@ -58,6 +63,7 @@ export function DataProviderManagerWrapper(props: LayerManagerComponentWrapperPr
             case "context-boundary": {
                 const ctxBoundary = new ContextBoundary("Context boundary", props.dataProviderManager);
                 groupDelegate.prependChild(ctxBoundary);
+                requestOpenMenuForId(ctxBoundary.getItemDelegate().getId());
 
                 return;
             }
