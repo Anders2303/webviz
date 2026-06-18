@@ -8,8 +8,8 @@ import { useViewStatusWriter } from "@framework/StatusWriter";
 import type { ChannelReceiverChannelContent, ChannelReceiverReturnData } from "@framework/types/dataChannnel";
 import { KeyKind } from "@framework/types/dataChannnel";
 import { useColorSet, useContinuousColorScale } from "@framework/WorkbenchSettings";
-import { Tag } from "@lib/newComponents/Tag";
 import { useElementSize } from "@lib/hooks/useElementSize";
+import { Tag } from "@lib/newComponents/Tag";
 import { ColorScaleGradientType } from "@lib/utils/ColorScale";
 import type { ColorSet } from "@lib/utils/ColorSet";
 import type { Size2D } from "@lib/utils/geometry";
@@ -169,7 +169,7 @@ function calcGridDimensions(numContents: number): { numRows: number; numCols: nu
 function MaxNumberPlotsExceededMessage(): React.ReactElement {
     return (
         <ContentWarning>
-            <Warning fontSize="large" className="mb-2" />
+            <Warning fontSize="large" className="mb-2xs" />
             Too many plots to display. Due to performance limitations, the number of plots is limited to {MAX_NUM_PLOTS}
             .
         </ContentWarning>

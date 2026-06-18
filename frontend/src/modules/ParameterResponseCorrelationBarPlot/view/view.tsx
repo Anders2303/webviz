@@ -7,8 +7,8 @@ import type { ModuleViewProps } from "@framework/Module";
 import { useViewStatusWriter } from "@framework/StatusWriter";
 import { SyncSettingKey } from "@framework/SyncSettings";
 import { KeyKind } from "@framework/types/dataChannnel";
-import { Tag } from "@lib/newComponents/Tag";
 import { useElementSize } from "@lib/hooks/useElementSize";
+import { Tag } from "@lib/newComponents/Tag";
 import type { Size2D } from "@lib/utils/geometry";
 import { ContentWarning } from "@modules/_shared/components/ContentMessage";
 import { Plot } from "@modules/_shared/components/Plot";
@@ -26,7 +26,7 @@ const MAX_NUM_PLOTS = 12;
 function MaxNumberPlotsExceededMessage() {
     return (
         <ContentWarning>
-            <Warning fontSize="large" className="mb-2" />
+            <Warning fontSize="large" className="mb-sm" />
             Too many plots to display. Due to performance limitations, the number of plots is limited to {MAX_NUM_PLOTS}
             .
         </ContentWarning>

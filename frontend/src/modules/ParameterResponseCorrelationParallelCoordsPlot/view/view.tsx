@@ -5,8 +5,8 @@ import { Input, Warning } from "@mui/icons-material";
 import type { ModuleViewProps } from "@framework/Module";
 import { useViewStatusWriter } from "@framework/StatusWriter";
 import { KeyKind } from "@framework/types/dataChannnel";
-import { Tag } from "@lib/newComponents/Tag";
 import { useElementSize } from "@lib/hooks/useElementSize";
+import { Tag } from "@lib/newComponents/Tag";
 import type { Size2D } from "@lib/utils/geometry";
 import { ContentWarning } from "@modules/_shared/components/ContentMessage";
 import { Plot } from "@modules/_shared/components/Plot";
@@ -24,12 +24,10 @@ export function View({ viewContext, workbenchSession }: ModuleViewProps<Interfac
     const [revNumberResponse, setRevNumberResponse] = React.useState<number>(0);
     const [prevNumParams, setPrevNumParams] = React.useState<number>(10);
     const [prevCorrCutOff, setPrevCorrCutOff] = React.useState<number>(0.0);
-    const [prevShowLabels, setPrevShowLabels] = React.useState<boolean | null>(null);
     const [prevSize, setPrevSize] = React.useState<Size2D | null>(null);
 
     const numParams = viewContext.useSettingsToViewInterfaceValue("numParams");
     const corrCutOff = viewContext.useSettingsToViewInterfaceValue("corrCutOff");
-    const showLabels = viewContext.useSettingsToViewInterfaceValue("showLabels");
     const ensembleSet = workbenchSession.getEnsembleSet();
 
     const statusWriter = useViewStatusWriter(viewContext);
@@ -48,13 +46,11 @@ export function View({ viewContext, workbenchSession }: ModuleViewProps<Interfac
         receiverResponse.revisionNumber !== revNumberResponse ||
         numParams !== prevNumParams ||
         corrCutOff !== prevCorrCutOff ||
-        showLabels !== prevShowLabels ||
         wrapperDivSize !== prevSize
     ) {
         setRevNumberResponse(receiverResponse.revisionNumber);
         setPrevNumParams(numParams);
         setPrevCorrCutOff(corrCutOff);
-        setPrevShowLabels(showLabels);
 
         setPrevSize(wrapperDivSize);
 
@@ -83,7 +79,7 @@ export function View({ viewContext, workbenchSession }: ModuleViewProps<Interfac
             if (receiverResponse.channel.contents.length > 1) {
                 setContent(
                     <ContentWarning>
-                        <Warning fontSize="large" className="mb-2" />
+                        <Warning fontSize="large" className="mb-sm" />
                         Only one channel is supported. Please select a single channel.
                     </ContentWarning>,
                 );
@@ -107,7 +103,7 @@ export function View({ viewContext, workbenchSession }: ModuleViewProps<Interfac
             if (!parameters) {
                 setContent(
                     <ContentWarning>
-                        <Warning fontSize="large" className="mb-2" />
+                        <Warning fontSize="large" className="mb-sm" />
                         No parameters found in ensemble
                     </ContentWarning>,
                 );
