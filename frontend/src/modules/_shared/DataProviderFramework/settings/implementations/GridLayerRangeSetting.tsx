@@ -4,10 +4,10 @@ import { cloneDeep, isEqual } from "lodash-es";
 
 import type { Grid3dZone_api } from "@api";
 import { Button } from "@lib/components/Button";
-import { Combobox } from "@lib/components/Combobox";
+import { ComboboxCompositions } from "@lib/components/Combobox/compositions";
 import { NumberInput } from "@lib/components/NumberInput";
-import { RadioCompositions } from "@lib/components/Radio/compositions";
 import { Slider } from "@lib/components/Slider";
+import { SwitchCompositions } from "@lib/components/Switch/compositions";
 import { useElementSize } from "@lib/hooks/useElementSize";
 import { resolveClassNames } from "@lib/utils/resolveClassNames";
 
@@ -17,7 +17,6 @@ import type {
 } from "../../interfacesAndTypes/customSettingImplementation";
 
 const MIN_INPUT_DISPLAY_WIDTH = 300;
-const MIN_HORIZONTAL_RADIO_WIDTH = 200;
 
 // ! We've hidden the min/max locks for now, as the UI needs to be re-evaluated. Keeping the surrounding logic, in-case we reintroduce it later
 type InternalValueType = {
@@ -298,7 +297,6 @@ export class GridLayerRangeSetting implements CustomSettingImplementation<
             const divSize = useElementSize(divRef);
 
             const sliderInputVisible = divSize.width >= MIN_INPUT_DISPLAY_WIDTH;
-            const kTypeRadioLayout = divSize.width >= MIN_HORIZONTAL_RADIO_WIDTH ? "horizontal" : "vertical";
 
             if (!isEqual(props.value, prevValue)) {
                 setInternalValue(cloneDeep(props.value));
@@ -447,6 +445,7 @@ export class GridLayerRangeSetting implements CustomSettingImplementation<
                         )}
                     >
                         {labels.map((label) => {
+                            const valueIsZone = isZoneValue(internalValue, label);
                             const rangeValue = getRangeValueForLabel(internalValue, label, valueConstraints);
                             const zoneValue = getZoneValueForLabel(internalValue, label);
 
@@ -477,28 +476,11 @@ export class GridLayerRangeSetting implements CustomSettingImplementation<
                                         {label.toUpperCase()}
                                     </div>
 
-                                    {label === "k" && (
-                                        <RadioCompositions.GroupWithLabels
-                                            value={internalValue?.["k"].type ?? "range"}
-                                            options={[
-                                                { label: "Range", value: "range" },
-                                                {
-                                                    label: "Zone",
-                                                    value: "zone",
-                                                    disabled: valueConstraints.zones.length === 0,
-                                                },
-                                            ]}
-                                            onValueChange={handleRadioChange}
-                                            layout={kTypeRadioLayout}
-                                            size="small"
-                                            disabled={props.disabled}
-                                        />
-                                    )}
-
                                     {rangeValue && (
                                         <div className="gap-x-3xs flex items-center">
                                             {sliderInputVisible && (
                                                 <NumberInput
+                                                    readOnly={valueIsZone}
                                                     value={rangeValue[0]}
                                                     layoutClassName="w-16 shrink-0"
                                                     min={valueConstraints.range[label][0]}
@@ -514,7 +496,7 @@ export class GridLayerRangeSetting implements CustomSettingImplementation<
                                             <Slider
                                                 layoutClassName="w-full"
                                                 value={rangeValue}
-                                                disabled={props.disabled}
+                                                disabled={valueIsZone || props.disabled}
                                                 min={valueConstraints.range[label][0]}
                                                 max={valueConstraints.range[label][1]}
                                                 valueLabelDisplay="auto"
@@ -527,6 +509,7 @@ export class GridLayerRangeSetting implements CustomSettingImplementation<
                                             />
                                             {sliderInputVisible && (
                                                 <NumberInput
+                                                    readOnly={valueIsZone}
                                                     layoutClassName="w-16 shrink-0"
                                                     value={rangeValue[1]}
                                                     min={rangeValue[0]}
@@ -541,16 +524,32 @@ export class GridLayerRangeSetting implements CustomSettingImplementation<
                                             )}
                                         </div>
                                     )}
-                                    {zoneValue && (
-                                        <Combobox
-                                            items={valueConstraints.zones.map((zone) => ({
-                                                label: zone.name,
-                                                value: zone.name,
-                                            }))}
-                                            value={zoneValue.name}
-                                            disabled={props.disabled}
-                                            onValueChange={handleZoneChange}
-                                        />
+
+                                    {label === "k" && (
+                                        <div className="gap-x-2xs col-span-full flex">
+                                            <SwitchCompositions.WithLabel
+                                                checked={valueIsZone}
+                                                size="small"
+                                                onCheckedChange={(v) => {
+                                                    handleRadioChange(v ? "zone" : "range");
+                                                }}
+                                            >
+                                                Set K by Zone
+                                            </SwitchCompositions.WithLabel>
+
+                                            <ComboboxCompositions.WithBrowseButtons
+                                                layoutClassName="grow"
+                                                size="small"
+                                                items={valueConstraints.zones.map((zone) => ({
+                                                    label: zone.name,
+                                                    value: zone.name,
+                                                }))}
+                                                placeholder=""
+                                                value={zoneValue ? zoneValue.name : null}
+                                                disabled={props.disabled || !valueIsZone}
+                                                onValueChange={handleZoneChange}
+                                            />
+                                        </div>
                                     )}
                                 </React.Fragment>
                             );
@@ -565,6 +564,12 @@ export class GridLayerRangeSetting implements CustomSettingImplementation<
             );
         };
     }
+}
+
+function isZoneValue(internalValue: InternalValueType, label: "i" | "j" | "k") {
+    const labelValue = internalValue?.[label];
+
+    return labelValue && labelValue && "type" in labelValue && labelValue.type === "zone";
 }
 
 function getZoneValueForLabel(internalValue: InternalValueType, label: "i" | "j" | "k") {
@@ -588,7 +593,7 @@ function getRangeValueForLabel(
 
     if (labelValue && "type" in labelValue) {
         if (labelValue.type === "zone") {
-            return null;
+            return [...labelValue.range];
         } else {
             rangeValue = [...labelValue.range];
         }
